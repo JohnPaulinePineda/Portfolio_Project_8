@@ -2265,12 +2265,6 @@ BootOptimismPerformance_Data$Complexity_Parameter <- factor(BootOptimismPerforma
                                                             levels=c("0.001","0.005","0.010","0.015","0.020"))
 str(BootOptimismPerformance_Data)
 BootOptimismPerformance_Data
-xyplot(Performance ~ Complexity_Parameter | Validation,
-                                    data = BootOptimismPerformance_Data,
-                                    ylab = "Estimated Accuracy",
-                                    xlab = "Complexity Parameter",
-                                    auto.key = list(adj = 1),
-                                    ylim = seq(0.60, 0.85, 0.05))
 (BootOptimismPerformance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
                                     data = BootOptimismPerformance_Data,
                                     ylab = "Estimated Accuracy",
