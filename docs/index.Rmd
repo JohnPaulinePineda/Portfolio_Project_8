@@ -1752,6 +1752,8 @@ Performance <- Apparent
 Validation <- c(rep("Apparent",5))
 ApparentPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance))
 ApparentPerformance_Data$Performance <- as.numeric(as.character(ApparentPerformance_Data$Performance))
+ApparentPerformance_Data$Complexity_Parameter <- factor(ApparentPerformance_Data$Complexity_Parameter,
+                                                      levels=c("0.001","0.005","0.010","0.015","0.020"))
 str(ApparentPerformance_Data)
 ApparentPerformance_Data
 (ApparentPerformance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
@@ -1776,6 +1778,8 @@ Performance <- Test
 Validation <- c(rep("External Validation",5))
 TestPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance))
 TestPerformance_Data$Performance <- as.numeric(as.character(TestPerformance_Data$Performance))
+TestPerformance_Data$Complexity_Parameter <- factor(TestPerformance_Data$Complexity_Parameter,
+                                                    levels=c("0.001","0.005","0.010","0.015","0.020"))
 str(TestPerformance_Data)
 TestPerformance_Data
 (TestPerformance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
@@ -1841,6 +1845,8 @@ CV.5Performance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Perf
 CV.5Performance_Data$Performance <- as.numeric(as.character(CV.5Performance_Data$Performance))
 CV.5Performance_Data$CV.5.UCL <- as.numeric(as.character(CV.5Performance_Data$CV.5.UCL))
 CV.5Performance_Data$CV.5.LCL <- as.numeric(as.character(CV.5Performance_Data$CV.5.LCL))
+CV.5Performance_Data$Complexity_Parameter <- factor(CV.5Performance_Data$Complexity_Parameter,
+                                                    levels=c("0.001","0.005","0.010","0.015","0.020"))
 str(CV.5Performance_Data)
 CV.5Performance_Data
 (CV.5Performance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
@@ -1911,6 +1917,8 @@ RCV.10Performance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Pe
 RCV.10Performance_Data$Performance <- as.numeric(as.character(RCV.10Performance_Data$Performance))
 RCV.10Performance_Data$RCV.10.UCL <- as.numeric(as.character(RCV.10Performance_Data$RCV.10.UCL))
 RCV.10Performance_Data$RCV.10.LCL <- as.numeric(as.character(RCV.10Performance_Data$RCV.10.LCL))
+RCV.10Performance_Data$Complexity_Parameter <- factor(RCV.10Performance_Data$Complexity_Parameter,
+                                                      levels=c("0.001","0.005","0.010","0.015","0.020"))
 str(RCV.10Performance_Data)
 RCV.10Performance_Data
 (RCV.10Performance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
@@ -1974,6 +1982,8 @@ Performance <- LOOCV
 Validation <- c(rep("Internal Validation - LOOCV",5))
 LOOCVPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance))
 LOOCVPerformance_Data$Performance <- as.numeric(as.character(LOOCVPerformance_Data$Performance))
+LOOCVPerformance_Data$Complexity_Parameter <- factor(LOOCVPerformance_Data$Complexity_Parameter,
+                                                     levels=c("0.001","0.005","0.010","0.015","0.020"))
 str(LOOCVPerformance_Data)
 LOOCVPerformance_Data
 (LOOCVPerformance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
@@ -2038,6 +2048,8 @@ LGOCVPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Per
 LGOCVPerformance_Data$Performance <- as.numeric(as.character(LGOCVPerformance_Data$Performance))
 LGOCVPerformance_Data$LGOCV.UCL <- as.numeric(as.character(LGOCVPerformance_Data$LGOCV.UCL))
 LGOCVPerformance_Data$LGOCV.LCL <- as.numeric(as.character(LGOCVPerformance_Data$LGOCV.LCL))
+LGOCVPerformance_Data$Complexity_Parameter <- factor(LGOCVPerformance_Data$Complexity_Parameter,
+                                                     levels=c("0.001","0.005","0.010","0.015","0.020"))
 str(LGOCVPerformance_Data)
 LGOCVPerformance_Data
 (LGOCVPerformance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
@@ -2107,6 +2119,8 @@ BootPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Perf
 BootPerformance_Data$Performance <- as.numeric(as.character(BootPerformance_Data$Performance))
 BootPerformance_Data$Boot.UCL <- as.numeric(as.character(BootPerformance_Data$Boot.UCL))
 BootPerformance_Data$Boot.LCL <- as.numeric(as.character(BootPerformance_Data$Boot.LCL))
+BootPerformance_Data$Complexity_Parameter <- factor(BootPerformance_Data$Complexity_Parameter,
+                                                    levels=c("0.001","0.005","0.010","0.015","0.020"))
 str(BootPerformance_Data)
 BootPerformance_Data
 (BootPerformance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
@@ -2176,6 +2190,8 @@ Boot632Performance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,P
 Boot632Performance_Data$Performance <- as.numeric(as.character(Boot632Performance_Data$Performance))
 Boot632Performance_Data$Boot632.UCL <- as.numeric(as.character(Boot632Performance_Data$Boot632.UCL))
 Boot632Performance_Data$Boot632.LCL <- as.numeric(as.character(Boot632Performance_Data$Boot632.LCL))
+Boot632Performance_Data$Complexity_Parameter <- factor(Boot632Performance_Data$Complexity_Parameter,
+                                                       levels=c("0.001","0.005","0.010","0.015","0.020"))
 str(Boot632Performance_Data)
 Boot632Performance_Data
 (Boot632Performance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
@@ -2245,8 +2261,16 @@ BootOptimismPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parame
 BootOptimismPerformance_Data$Performance <- as.numeric(as.character(BootOptimismPerformance_Data$Performance))
 BootOptimismPerformance_Data$BootOptimism.UCL <- as.numeric(as.character(BootOptimismPerformance_Data$BootOptimism.UCL))
 BootOptimismPerformance_Data$BootOptimism.LCL <- as.numeric(as.character(BootOptimismPerformance_Data$BootOptimism.LCL))
+BootOptimismPerformance_Data$Complexity_Parameter <- factor(BootOptimismPerformance_Data$Complexity_Parameter,
+                                                            levels=c("0.001","0.005","0.010","0.015","0.020"))
 str(BootOptimismPerformance_Data)
 BootOptimismPerformance_Data
+xyplot(Performance ~ Complexity_Parameter | Validation,
+                                    data = BootOptimismPerformance_Data,
+                                    ylab = "Estimated Accuracy",
+                                    xlab = "Complexity Parameter",
+                                    auto.key = list(adj = 1),
+                                    ylim = seq(0.60, 0.85, 0.05))
 (BootOptimismPerformance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
                                     data = BootOptimismPerformance_Data,
                                     ylab = "Estimated Accuracy",
