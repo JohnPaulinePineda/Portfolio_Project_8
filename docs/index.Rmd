@@ -2289,7 +2289,7 @@ BootOptimismPerformance_Data
 
 ```
 
-### 1.5.9 Model Evaluation Summary
+## 1.6 Model Evaluation Summary
 |
 | Model performance comparison:
 |
@@ -2372,7 +2372,7 @@ rpartFit.Apparent.CP.010.Pruned.Summary$variable.importance
 
 ```
 
-##  1.6 References
+# **2. References**
 |
 | **[Book]** [Applied Predictive Modeling](http://appliedpredictivemodeling.com/) by Max Kuhn and Kjell Johnson
 | **[Book]** [An Introduction to Statistical Learning](https://www.statlearning.com/) by Gareth James, Daniela Witten, Trevor Hastie and Rob Tibshirani
