@@ -627,6 +627,7 @@ if (DPA_HighlyCorrelatedCount > 0) {
 |      **[A.2]** <span style="color: #FF0000">Personal.Male.Married.Widowed</span> variable (factor)
 |      **[A.3]** <span style="color: #FF0000">Property.Unknown</span> variable (factor)
 |      **[A.4]** <span style="color: #FF0000">Housing.ForFree</span> variable (factor)
+|
 | **[B]** There were 4 variables which consistently appeared across the 4 subsets. Among them, the  <span style="color: #FF0000">CheckingAccountStatus.lt.0</span> variable was removed.
 |      **[B.1]** <span style="color: #FF0000">CheckingAccountStatus.lt.0</span> variable (factor)
 |      **[B.2]** <span style="color: #FF0000">CheckingAccountStatus.0.to.200</span> variable (factor)
@@ -1405,7 +1406,9 @@ grid.arrange(PropTable_BarChart_28,
 | Model development and validation strategy:
 |
 | **[A]** The dataset was randomly split into 80% train set (800 observations) and 20% test set (200 observations).
+|
 | **[B]** Five models corresponding to the five hyperparameter values were developed and evaluated using the train set to determine their apparent performance. The same set of models were externally validated on the test set.
+|
 | **[C]** The internal validation performances of these models were obtained using the procedures described as follows:  
 |      **[C.1]** <span style="color: #FF0000">K-Fold Cross Validation</span> using K=5
 |      **[C.2]** <span style="color: #FF0000">Repeated K-Fold Cross Validation</span> using K=5, Repeats=10
@@ -1414,6 +1417,7 @@ grid.arrange(PropTable_BarChart_28,
 |      **[C.5]** <span style="color: #FF0000">Bootstrap Validation</span> using Iterations=500
 |      **[C.6]** <span style="color: #FF0000">Bootstrap 0.632 Validation</span> using Iterations=500
 |      **[C.7]** <span style="color: #FF0000">Bootstrap with Optimism-Estimation Validation</span> using Iterations=500
+|
 | **[D]** Model performance will be evaluated using the <span style="color: #FF0000">Accuracy</span> metric which refers to the proportion of correct model classifications with respect to the total number of observations.
 |
 ```{r section_1.5, warning=FALSE, message=FALSE}
@@ -1438,12 +1442,14 @@ MA_Test         <- PMA_PreModelling[-MA_Train_Index, ]
 |      **[A.3]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 80.25% Accuracy
 |      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 77.50% Accuracy
 |      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 77.00% Accuracy
+|
 | **[B]** Externally-validated model performance on test set :
 |      **[B.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 73.00% Accuracy
 |      **[B.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 74.50% Accuracy (Best)
 |      **[B.3]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 74.00% Accuracy
 |      **[B.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 73.00% Accuracy
 |      **[B.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 72.50% Accuracy 
+|
 ```{r section_1.5.1, warning=FALSE, message=FALSE}
 ##################################
 # Creating the modelling dataset
@@ -2294,6 +2300,7 @@ BootOptimismPerformance_Data
 | Model performance comparison:
 |
 | **[A]** The best apparent model performance was noted for the most complex model (<span style="color: #FF0000">Complexity Parameter</span> = 0.001). However, this model might have too closely captured patterns of the train set, which may render it unable to generalize well to unseen data. Several internal validation procedures were implemented to estimate model performance on new data.
+|
 | **[B]** Various best-performing models were noted for the different internal validation procedures evaluated :
 |      **[B.1]** <span style="color: #FF0000">K-Fold Cross Validation</span> using K=5
 |             **[B.1.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 70.50% Accuracy (Best) 
@@ -2316,6 +2323,7 @@ BootOptimismPerformance_Data
 |      **[B.7]** <span style="color: #FF0000">Bootstrap with Optimism-Estimation Validation</span> using Iterations=500
 |             **[B.7.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 75.48% Accuracy (Best) 
 |             **[B.7.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 75.28% Accuracy (Alternate)
+|
 | **[C]** Taken together, the model with <span style="color: #FF0000">Complexity Parameter</span> = 0.010  was chosen as the final model. The best predictors identified from the model ranked based on variable importance are as follows :
 |      **[C.1]** <span style="color: #FF0000">CheckingAccountStatus.none</span> variable (factor)
 |      **[C.2]** <span style="color: #FF0000">Duration</span> variable (numeric)
@@ -2340,6 +2348,7 @@ BootOptimismPerformance_Data
 |      **[C.21]** <span style="color: #FF0000">Purpose.Business</span> variable (factor)
 |      **[C.22]** <span style="color: #FF0000">Purpose.Furniture.Equipment</span> variable (factor)
 |      **[C.23]** <span style="color: #FF0000">Job.UnskilledResident</span> variable (factor)
+|
 | **[D]** External validation of the final model (<span style="color: #FF0000">Complexity Parameter</span> = 0.010) on the test data resulted to a 74.00% accuracy. The difference between the apparent and test accuracies for the final model is 6.25% indicating a slight model overfit. It is not, however, the most optimal model, as the candidate model with <span style="color: #FF0000">Complexity Parameter</span> = 0.005 showed a higher externally-validated accuracy at 74.50%. This might indicate the slight difference in characteristics between the train and test sets.
 |      **[D.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 74.00% Accuracy (Final) 
 |      **[D.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 74.50% Accuracy (Optimal)
