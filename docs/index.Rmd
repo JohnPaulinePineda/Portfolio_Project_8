@@ -16,7 +16,9 @@ knitr::opts_chunk$set(echo = TRUE, fig.width=15, fig.height=10)
 ```
 # **1. Table of Contents**
 |
-| This document presents a non-exhaustive list of resampling procedures for hyperparameter tuning and internal validation as applied on a classification modelling problem using various helpful packages in <mark style="background-color: #CCECFF">**R**</mark>.    
+| This document presents a non-exhaustive list of resampling procedures for hyperparameter tuning and internal validation as applied on a classification modelling problem using various helpful packages in <mark style="background-color: #CCECFF">**R**</mark>.  
+|
+| Data resampling consists of various techniques for estimating the generalizability of a model using only the data available during model development, which typically involves partitioning from the available data to simulate potential variability in the wider population. This process is essential for optimizing model hyperparemeters and internally validating a predictive model's performance with respect to optimism or overfitting. Overfitting refers to the condition when a statistical model intended to make general predictions about a population instead narrowly describes the unique variations present only in the sample dataset used to train it. One common cause for overfitting is using a sample dataset that's insufficiently representative of the population it was drawn from. Hyperparameter tuning is the process of determining the optimal combination of hyperparameter values that maximizes the model performance by running multiple trials in a single training process. Hyperparameters refer to external configuration variables that are used to control the learning process and have a significant effect on the performance of machine learning models but are fixed and cannot be directly learned from the regular training process. The resampling procedures applied in this study (mostly contained in the <mark style="background-color: #CCECFF">**caret**</mark> package) attempt to train the models sequentially by exploring the optimal hyperparameters and internally estimate model performance to unseen data.
 |
 ##  1.1 Sample Data
 |
