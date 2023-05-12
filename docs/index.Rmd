@@ -1436,6 +1436,8 @@ MA_Test         <- PMA_PreModelling[-MA_Train_Index, ]
 
 ### 1.5.1 Apparent and External Validation - Split-Sample
 |
+| [Split-Sample / Holdout Validation](https://dl.acm.org/doi/10.1145/130385.130401) plots each observation in an N-dimensional space corresponding to the number of features in the data set and finds a hyperplane that maximally separates the different classes by a maximally large margin (which is defined as the distance between the hyperplane and the closest data points from each class). The algorithm applies kernel transformation by mapping non-linearly separable data using the similarities between the points in a high-dimensional feature space for improved discrimination.
+|
 | Model evaluation results:
 |
 | **[A]** Apparent model performance on train set :
@@ -2405,6 +2407,8 @@ rpartFit.Apparent.CP.010.Pruned.Summary$variable.importance
 | **[R Package]** [rpart.plot](https://cran.r-project.org/web/packages/rpart.plot/rpart.plot.pdf) by Stephen Milborrow
 | **[R Package]** [RColorBrewer](https://cran.r-project.org/web//packages/RColorBrewer/RColorBrewer.pdf) by Erich Neuwirth
 | **[Article]** [Seven Types of Cross-validation](https://www.analyticssteps.com/blogs/7-types-cross-validation) by Soumyaa Rawat
+| **[Article]** [What Is Cross-Validation? Comparing Machine Learning Models](https://learn.g2.com/cross-validation) by Amal Joby
+| **[Article]** [Cross-Validation: Evaluating Estimator Performance](https://scikit-learn.org/stable/modules/cross_validation.html) by Sci-Kit Learn Team
 | **[Article]** [Simple and Efficient Bootstrap Validation of Predictive Models Using SAS/STAT® Software](https://www.sas.com/content/dam/SAS/support/en/sas-global-forum-proceedings/2020/4647-2020.pdf) by Isaiah Lankham and Matthew Slaughter
 | **[Article]** [Adjusting For Optimism/Overfitting in Measures of Predictive Ability Using Bootstrapping](https://thestatsgeek.com/2014/10/04/adjusting-for-optimismoverfitting-in-measures-of-predictive-ability-using-bootstrapping/) by Jonathan Bartlett
 | **[Article]** [Bootstrap_point632_score: The .632 and .632+ Boostrap for Classifier Evaluation](http://rasbt.github.io/mlxtend/user_guide/evaluate/bootstrap_point632_score/) by Sebastian Raschka
