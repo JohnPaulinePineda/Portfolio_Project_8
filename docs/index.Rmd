@@ -2407,6 +2407,7 @@ rpartFit.Apparent.CP.010.Pruned.Summary$variable.importance
 | **[Article]** [Adjusting For Optimism/Overfitting in Measures of Predictive Ability Using Bootstrapping](https://thestatsgeek.com/2014/10/04/adjusting-for-optimismoverfitting-in-measures-of-predictive-ability-using-bootstrapping/) by Jonathan Bartlett
 | **[Article]** [Bootstrap_point632_score: The .632 and .632+ Boostrap for Classifier Evaluation](http://rasbt.github.io/mlxtend/user_guide/evaluate/bootstrap_point632_score/) by Sebastian Raschka
 | **[Article]** [Bootstrap and Cross-Validation for Evaluating Modelling Strategies](https://www.r-bloggers.com/2016/06/bootstrap-and-cross-validation-for-evaluating-modelling-strategies/) by Peter's Stats Stuff - R
+| **[Article]** [Comparison of Strategies for Validating Binary Logistic Regression Models](http://hbiostat.org/doc/simval.html) by Frank Harrel
 | **[Article]** [The caret Package](https://topepo.github.io/caret/index.html) by Max Kuhn
 | **[Article]** [A Short Introduction to the caret Package](https://cran.r-project.org/web/packages/caret/vignettes/caret.html) by Max Kuhn
 | **[Article]** [Caret Package – A Practical Guide to Machine Learning in R](https://www.machinelearningplus.com/machine-learning/caret-package/#:~:text=Caret%20is%20short%20for%20Classification%20And%20REgression%20Training.,track%20of%20which%20algorithm%20resides%20in%20which%20package.) by Selva Prabhakaran
@@ -2421,6 +2422,19 @@ rpartFit.Apparent.CP.010.Pruned.Summary$variable.importance
 | **[Article]** [An Overview of Decision Tree Algorithm in Machine Learning](https://mldoodles.com/decision-tree-algorithm/) by ML Doodles Team
 | **[Article]** [Decision Tree Classification Algorithm](https://www.javatpoint.com/machine-learning-decision-tree-classification-algorithm) by JavaTPoint Team
 | **[Article]** [The Ultimate Guide to Decision Trees for Machine Learning](https://www.keboola.com/blog/decision-trees-machine-learning) by Keboola Team
+| **[Article]** [Hyperparameter Tuning for Machine Learning Explained](https://www.mygreatlearning.com/blog/hyperparameter-tuning-explained/) by Great Learning Team
+| **[Article]** [Hyperparameter Tuning](https://www.geeksforgeeks.org/hyperparameter-tuning/) by Tarandeep Singh
+| **[Article]** [Hyperparameter Optimization Techniques to Improve Your Machine Learning Model's Performance](https://www.freecodecamp.org/news/hyperparameter-optimization-techniques-machine-learning/) by Davis David
+| **[Article]** [What Is Hyperparameter Tuning?](https://aws.amazon.com/what-is/hyperparameter-tuning/) by AWS Team
+| **[Article]** [Hyperparameter Tuning in Python: a Complete Guide](https://neptune.ai/blog/hyperparameter-tuning-in-python-complete-guide#:~:text=Hyperparameter%20tuning%20%28or%20hyperparameter%20optimization%29%20is%20the%20process,running%20multiple%20trials%20in%20a%20single%20training%20process.) by Shahul ES and Aayush Bajaj
+| **[Publication]** [The Little Bootstrap and other Methods for Dimensionality Selection in Regression: X-Fixed Prediction Error](https://www.tandfonline.com/doi/abs/10.1080/01621459.1992.10475276) by Leo Breiman (Journal of the American Statistical Association )
+| **[Publication]** [A Leisurely Look at the Bootstrap, the Jackknife, and Cross-Validation](https://www.jstor.org/stable/2685844?origin=crossref) by Bradley Efron and Gail Gong (The American Statistician)
+| **[Publication]** [Bootstrap Methods for Standard Errors, Confidence Intervals, and Other Measures of Statistical Accuracy](https://projecteuclid.org/journals/statistical-science/volume-1/issue-1/Bootstrap-Methods-for-Standard-Errors-Confidence-Intervals-and-Other-Measures/10.1214/ss/1177013817.full) by Bradley Efron and Rob Tibshirani (Statistical Science)
+| **[Publication]** [Improvements on Cross-Validation: The .632+ Bootstrap Method](https://www.jstor.org/stable/2965703?origin=crossref) by Bradley Efron and Rob Tibshirani (Journal of the American Statistical Association)
+| **[Publication]** [Bootstrap Methods: Another Look at the Jackknife](https://link.springer.com/chapter/10.1007/978-1-4612-4380-9_41) by Bradley Efron (The Annals of Statistics)
+| **[Publication]** [Estimating the Error Rate of a Prediction Rule: Improvement on Cross-Validation](https://www.tandfonline.com/doi/abs/10.1080/01621459.1983.10477973) by Bradley Efron (Journal of the American Statistical Association)
+| **[Publication]** [How Biased is the Apparent Error Rate of a Prediction Rule?](https://www.tandfonline.com/doi/abs/10.1080/01621459.1986.10478291) by Bradley Efron (Journal of the American Statistical Association)
+| **[Publication]** [Prediction Error Estimation: A Comparison of Resampling Methods](https://academic.oup.com/bioinformatics/article/21/15/3301/195433) by Annette Molinaro, Richard Simon and Ruth Pfeiffer (Bioinformatics)
 |
 |
 |
