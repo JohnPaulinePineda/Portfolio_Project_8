@@ -1815,6 +1815,8 @@ TestPerformance_Data
 
 ### 1.5.2 Internal Validation - K-Fold Cross-Validation
 |
+| [K-Fold Cross-Validation](http://appliedpredictivemodeling.com/) involves dividing the training set after a random shuffle into a user-defined K number of smaller sets called folds. For each unique fold, the assigned group is assigned as the hold-out or test data. All the remaining K-1 folds are used for model training, with the the resulting model validated on the remaining fold of the data. The evaluation score is retained but the model is discarded. The process is recursively performed for all possible fold combinations allowing each fold to serve as the test set to evaluate the model performance of the models trained using each corresponding K-1 folds. All K-computed performance measures reported from the process are then averaged to represent the estimated performance of the mode. This approach can be computationally expensive, but does not waste too much data which is a major advantage in problems where the number of samples is very small.
+|
 | Model evaluation results:
 |
 | **[A]** Internally-validated model performance on train set :
