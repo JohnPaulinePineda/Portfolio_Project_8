@@ -1815,7 +1815,7 @@ TestPerformance_Data
 
 ### 1.5.2 Internal Validation - K-Fold Cross-Validation
 |
-| [K-Fold Cross-Validation](http://appliedpredictivemodeling.com/) involves dividing the training set after a random shuffle into a user-defined K number of smaller sets called folds. For each unique fold, the assigned group is assigned as the hold-out or test data. All the remaining K-1 folds are used for model training, with the the resulting model validated on the remaining fold of the data. The evaluation score is retained but the model is discarded. The process is recursively performed for all possible fold combinations allowing each fold to serve as the test set to evaluate the model performance of the models trained using each corresponding K-1 folds. All K-computed performance measures reported from the process are then averaged to represent the estimated performance of the mode. This approach can be computationally expensive, but does not waste too much data which is a major advantage in problems where the number of samples is very small.
+| [K-Fold Cross-Validation](http://appliedpredictivemodeling.com/) involves dividing the training set after a random shuffle into a user-defined K number of smaller non-overlapping sets called folds. Each unique fold is assigned as the hold-out test data to assess the model trained from the data set collected from all the remaining K-1 folds. The evaluation score is retained but the model is discarded. The process is recursively performed resulting to a total of K fitted models and evaluated on the K hold-out test sets. All K-computed performance measures reported from the process are then averaged to represent the estimated performance of the model. This approach can be computationally expensive and may be highly dependent on how the data was randomly assigned to their respective folds, but does not waste too much data which is a major advantage in problems where the number of samples is very small.
 |
 | Model evaluation results:
 |
@@ -1886,6 +1886,8 @@ CV.5Performance_Data
 ```
 
 ### 1.5.3 Internal Validation - Repeated K-Fold Cross-Validation
+|
+| [Repeated K-Fold Cross-Validation](http://appliedpredictivemodeling.com/) improves on the potentially noisy estimate of model performance via K-Fold cross-validation. Each time the procedure is run, a different split of the dataset into K folds can be implemented, and in turn, the distribution of performance scores can be different, resulting in a different mean estimate of model performance. The amount of difference in the estimated performance from one run of K-Fold cross-validation to another is dependent upon the model that is being used and on the data set itself. One solution to reduce the noise in the estimated model performance is by simply repeating the cross-validation procedure multiple times using different random seeds and reporting the mean result across all folds from all runs. This will reduce the bias in the model’s estimated performance by generating a more accurate estimate of the true unknown underlying mean performance of the model on the data set.
 |
 | Model evaluation results:
 |
@@ -2410,6 +2412,8 @@ rpartFit.Apparent.CP.010.Pruned.Summary$variable.importance
 | **[R Package]** [RColorBrewer](https://cran.r-project.org/web//packages/RColorBrewer/RColorBrewer.pdf) by Erich Neuwirth
 | **[Article]** [Seven Types of Cross-validation](https://www.analyticssteps.com/blogs/7-types-cross-validation) by Soumyaa Rawat
 | **[Article]** [What Is Cross-Validation? Comparing Machine Learning Models](https://learn.g2.com/cross-validation) by Amal Joby
+| **[Article]** [A Gentle Introduction to K-Fold Cross-Validation](https://machinelearningmastery.com/k-fold-cross-validation/) by Jason Brownlee
+| **[Article]** [Repeated k-Fold Cross-Validation for Model Evaluation in Python](https://machinelearningmastery.com/repeated-k-fold-cross-validation-with-python/) by Jason Brownlee
 | **[Article]** [Cross-Validation: Evaluating Estimator Performance](https://scikit-learn.org/stable/modules/cross_validation.html) by Sci-Kit Learn Team
 | **[Article]** [Simple and Efficient Bootstrap Validation of Predictive Models Using SAS/STAT® Software](https://www.sas.com/content/dam/SAS/support/en/sas-global-forum-proceedings/2020/4647-2020.pdf) by Isaiah Lankham and Matthew Slaughter
 | **[Article]** [Adjusting For Optimism/Overfitting in Measures of Predictive Ability Using Bootstrapping](https://thestatsgeek.com/2014/10/04/adjusting-for-optimismoverfitting-in-measures-of-predictive-ability-using-bootstrapping/) by Jonathan Bartlett
