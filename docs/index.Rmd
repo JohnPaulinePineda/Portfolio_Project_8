@@ -1436,7 +1436,7 @@ MA_Test         <- PMA_PreModelling[-MA_Train_Index, ]
 
 ### 1.5.1 Apparent and External Validation - Split-Sample
 |
-| [Split-Sample / Holdout Validation](https://dl.acm.org/doi/10.1145/130385.130401) plots each observation in an N-dimensional space corresponding to the number of features in the data set and finds a hyperplane that maximally separates the different classes by a maximally large margin (which is defined as the distance between the hyperplane and the closest data points from each class). The algorithm applies kernel transformation by mapping non-linearly separable data using the similarities between the points in a high-dimensional feature space for improved discrimination.
+| [Split-Sample Holdout Validation](http://appliedpredictivemodeling.com/) involves dividing the data set into the training and testing data sets. The data sample is shuffled so that samples get mixed and lead to an accurate training data set. The model is typically trained with a large number of samples as compared to the samples available in the testing data set. The next step is to develop the model with the training data set and once it is trained, the model is evaluated with the testing data set. While the training data set is kept to be more than the testing data set in terms of size, it could be possible that the training data set is not representative of the whole data sample. The testing data set could also potentially contain essential characteristics of the whole data that can get missed out.
 |
 | Model evaluation results:
 |
