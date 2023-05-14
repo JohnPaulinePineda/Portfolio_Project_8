@@ -2096,6 +2096,8 @@ LGOCVPerformance_Data
 
 ### 1.5.6 Internal Validation - Bootstrap Validation
 |
+| [Bootstrap Validation](http://appliedpredictivemodeling.com/) takes random samples with replacement from the training set equal to the number of observations in the data set, given a defined number of iterations. Since the sampling is with replacement, there is a very strong likelihood that some training set samples will be represented more than once. As a consequence of this, some training set data points will not be contained in the bootstrap sample. The model is trained on the bootstrap sample and those data points not in that sample, referred to as out-of-bag samples are the unique sets of instances that are not used for model fitting, are predicted as hold-outs. The model performance metric is calculated from each bootstrap sample with all results consolidated and averaged to estimate the overall performance of the model. 
+|
 | Model evaluation results:
 |
 | **[A]** Internally-validated model performance on train set :
@@ -2399,6 +2401,7 @@ rpartFit.Apparent.CP.010.Pruned.Summary$variable.importance
 | **[Book]** [An Introduction to Statistical Learning](https://www.statlearning.com/) by Gareth James, Daniela Witten, Trevor Hastie and Rob Tibshirani
 | **[Book]** [Classification and Regression Trees](https://www.taylorfrancis.com/books/mono/10.1201/9781315139470/classification-regression-trees-leo-breiman) by Leo Breiman
 | **[Book]** [Data Modeling Methods](https://bookdown.org/larget_jacob/data-modeling-methods/) by Jacob Larget
+| **[Book]** [Clinical Prediction Models](http://clinicalpredictionmodels.org/) by Ewout Steyerberg
 | **[R Package]** [caret](https://topepo.github.io/caret/index.html) by Max Kuhn
 | **[R Package]** [rpart](https://mran.microsoft.com/web/packages/rpart/rpart.pdf) by Terry Therneau and Beth Atkinson
 | **[R Package]** [lattice](https://cran.r-project.org/web/packages/lattice/lattice.pdf) by  Deepayan Sarkar
