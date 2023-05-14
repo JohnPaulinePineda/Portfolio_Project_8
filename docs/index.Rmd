@@ -1960,6 +1960,8 @@ RCV.10Performance_Data
 
 ### 1.5.4 Internal Validation - Leave-One-Out Cross Validation (LOOCV)
 |
+| [Leave-One-Out Cross Validation](http://appliedpredictivemodeling.com/) is an extreme configuration of K-Fold cross-validation where K is set to the number of examples in the data set, driving a maximum computational cost. It requires one model to be created and evaluated for each sample in the training data set resulting to N models. Each observation is considered as the validation set and the rest (N-1) observations are considered as the training set. Given the improved estimate of model performance, LOOCV is appropriate when an accurate estimate of model performance is critical. This particularly case when the data set is small which can lead to model over-fitting during training and biased estimates of model performance. Further, given that no sampling of the training data set is used, this estimation procedure is deterministic, unlike train-test splits and other K-Fold cross-validation confirmations that provide a stochastic estimate of model performance.
+|
 | Model evaluation results:
 |
 | **[A]** Internally-validated model performance on train set :
