@@ -2424,6 +2424,7 @@ rpartFit.Apparent.CP.010.Pruned.Summary$variable.importance
 | **[Article]** [A Gentle Introduction to K-Fold Cross-Validation](https://machinelearningmastery.com/k-fold-cross-validation/) by Jason Brownlee
 | **[Article]** [Repeated k-Fold Cross-Validation for Model Evaluation in Python](https://machinelearningmastery.com/repeated-k-fold-cross-validation-with-python/) by Jason Brownlee
 | **[Article]** [LOOCV for Evaluating Machine Learning Algorithms](https://machinelearningmastery.com/loocv-for-evaluating-machine-learning-algorithms/) by Jason Brownlee
+| **[Article]** [A Gentle Introduction to the Bootstrap Method](https://machinelearningmastery.com/a-gentle-introduction-to-the-bootstrap-method/) by Jason Brownlee
 | **[Article]** [LOOCV (Leave One Out Cross-Validation) in R Programming](https://www.geeksforgeeks.org/loocvleave-one-out-cross-validation-in-r-programming/) by Geeks for Geeks Team
 | **[Article]** [Simple and Efficient Bootstrap Validation of Predictive Models Using SAS/STAT® Software](https://www.sas.com/content/dam/SAS/support/en/sas-global-forum-proceedings/2020/4647-2020.pdf) by Isaiah Lankham and Matthew Slaughter
 | **[Article]** [Adjusting For Optimism/Overfitting in Measures of Predictive Ability Using Bootstrapping](https://thestatsgeek.com/2014/10/04/adjusting-for-optimismoverfitting-in-measures-of-predictive-ability-using-bootstrapping/) by Jonathan Bartlett
