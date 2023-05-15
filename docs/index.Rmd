@@ -2242,6 +2242,8 @@ Boot632Performance_Data
 
 ### 1.5.8 Internal Validation - Bootstrap Validation with Optimism Estimation
 |
+| [Bootstrap Validation with Optimism Estimation](http://clinicalpredictionmodels.org/) is a further improvement of the original bootstrap process for calculating nearly unbiased and relatively stable estimates of optimism for a specific model performance metric. By subtracting the optimism from the performance metric, a corrected version can be obtained which better accounts for possible overfitting, which has been shown through numerous simulation studies as able to produce much more accurate estimates of true model performance than simply obtaining bootstrap estimates of performance metrics directly. The process involves training a model on a sample dataset, and recording the value of a performance metric of interest. Sufficiently many bootstrap samples are formed by drawing randomly with replacement from the original sample data set. New models are trained on each bootstrap sample, and each corresponding value of the performance metric for each bootstrap-sample-derived model is recorded. Each bootstrap-sample-derived model is applied to the original sample dataset, and the performance metric is measured. Optimism values are estimated by taking the mean of the differences between the the apparent performance of each bootstrap-sample-derived mode and each bootstrap-sample-derived model's performance when tested on the original sample. Rhe optimism-corrected value of the performance metric is then determined as the difference between the calculated naive values and the estimated optimism. 
+|
 | Model evaluation results:
 |
 | **[A]** Internally-validated model performance on train set :
