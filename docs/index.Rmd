@@ -2169,6 +2169,8 @@ BootPerformance_Data
 
 ### 1.5.7 Internal Validation - Bootstrap 0.632 Validation
 |
+| [Bootstrap 0.632 Validation](https://www.tandfonline.com/doi/abs/10.1080/01621459.1983.10477973) is an improvement of the bootstrap cross-validation by addressing its pessimistic bias. The pessimistic bias in the classic bootstrap method can be attributed to the fact that the bootstrap samples only contain approximately 63.2% of the unique samples from the original data set as bootstrap training sets and reserve 36.8% out-of-bag samples for testing in each iteration. To address the bias that is due to the sampling with replacement, the 0.632 bootstrap applies a weighted sum of the bootstrapped resubstitution error by 0.632 and the out-of-bag bootstrapped estimate of the prediction error by 0.368.
+|
 | Model evaluation results:
 |
 | **[A]** Internally-validated model performance on train set :
