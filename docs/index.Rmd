@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.width=15, fig.height=10)
 ```
 # **1. Table of Contents**
 |
-| This document presents a non-exhaustive list of resampling procedures for hyperparameter tuning and internal validation as applied on a classification modelling problem using various helpful packages in <mark style="background-color: #CCECFF">**R**</mark>.  
+| This project explores different resampling procedures during model hyperparameter tuning and internal validation using various helpful packages in <mark style="background-color: #CCECFF">**R**</mark>. Using a **Recursive Partitioning and Regression Trees** model structure, resampling methods applied in the analysis for tuning model hyperparameters and internally validating model performance included **K-Fold Cross Validation**, **Repeated K-Fold Cross Validation**, **Leave-One-Out Cross Validation**, **Leave-Group-Out Cross Validation**, **Bootstrap Validation**, **Bootstrap 0.632 Validation** and **Bootstrap with Optimism-Estimation Validation**. The resulting predictions derived from the candidate models with their respective optimal hyperparameters were evaluated in terms of their classification performance using the accuracy metric, which were subsequently compared to the baseline model’s apparent performance values.
 |
 | Data resampling consists of various techniques for estimating the generalizability of a model using only the data available during model development, which typically involves partitioning from the available data to simulate potential variability in the wider population. This process is essential for optimizing model hyperparemeters and internally validating a predictive model's performance with respect to optimism or overfitting. Overfitting refers to the condition when a statistical model intended to make general predictions about a population instead narrowly describes the unique variations present only in the sample dataset used to train it. One common cause for overfitting is using a sample dataset that's insufficiently representative of the population it was drawn from. Hyperparameter tuning is the process of determining the optimal combination of hyperparameter values that maximizes the model performance by running multiple trials in a single training process. Hyperparameters refer to external configuration variables that are used to control the learning process and have a significant effect on the performance of machine learning models but are fixed and cannot be directly learned from the regular training process. The resampling procedures applied in this study (mostly contained in the <mark style="background-color: #CCECFF">**caret**</mark> package) attempt to train the models sequentially by searching for the optimal hyperparameters and internally estimating the model performance for unseen data.
 |
@@ -2320,25 +2320,25 @@ BootOptimismPerformance_Data
 | **[A]** The best apparent model performance was noted for the most complex model (<span style="color: #FF0000">Complexity Parameter</span> = 0.001). However, this model might have too closely captured patterns of the train set, which may render it unable to generalize well to unseen data. Several internal validation procedures were implemented to estimate model performance on new data.
 |
 | **[B]** Various best-performing models were noted for the different internal validation procedures evaluated :
-|      **[B.1]** <span style="color: #FF0000">K-Fold Cross Validation</span> using K=5
+|      **[B.1]** **K-Fold Cross Validation** using K=5
 |             **[B.1.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 70.50% Accuracy (Best) 
 |             **[B.1.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 70.38% Accuracy (Alternate)
-|      **[B.2]** <span style="color: #FF0000">Repeated K-Fold Cross Validation</span> using K=5, Repeats=10
+|      **[B.2]** **Repeated K-Fold Cross Validation** using K=5, Repeats=10
 |             **[B.2.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 72.01% Accuracy (Best) 
 |             **[B.2.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 71.54% Accuracy (Alternate)
-|      **[B.3]** <span style="color: #FF0000">Leave-One-Out Cross Validation</span> using N=800
+|      **[B.3]** **Leave-One-Out Cross Validation** using N=800
 |             **[B.3.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 67.38% Accuracy (Best) 
 |             **[B.3.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 66.00% Accuracy (Alternate)
-|      **[B.4]** <span style="color: #FF0000">Leave-Group-Out Cross Validation</span> using Iterations=500
+|      **[B.4]** **Leave-Group-Out Cross Validation** using Iterations=500
 |             **[B.4.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 71.21% Accuracy (Alternate) 
 |             **[B.4.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 71.23% Accuracy (Best)
-|      **[B.5]** <span style="color: #FF0000">Bootstrap Validation</span> using Iterations=500
+|      **[B.5]** **Bootstrap Validation** using Iterations=500
 |             **[B.5.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 71.11% Accuracy (Alternate) 
 |             **[B.5.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 71.24% Accuracy (Best)
-|      **[B.6]** <span style="color: #FF0000">Bootstrap 0.632 Validation</span> using Iterations=500
+|      **[B.6]** **Bootstrap 0.632 Validation** using Iterations=500
 |             **[B.6.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 74.58% Accuracy (Alternate) 
 |             **[B.6.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 74.76% Accuracy (Best)
-|      **[B.7]** <span style="color: #FF0000">Bootstrap with Optimism-Estimation Validation</span> using Iterations=500
+|      **[B.7]** **Bootstrap with Optimism-Estimation Validation** using Iterations=500
 |             **[B.7.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 75.48% Accuracy (Best) 
 |             **[B.7.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 75.28% Accuracy (Alternate)
 |
