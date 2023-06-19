@@ -34,6 +34,9 @@ knitr::opts_chunk$set(echo = TRUE, fig.width=15, fig.height=10)
 |      **[B.2]** 61/62 predictors = All remaining variables (54/61 factor + 7/61 numeric)
 |     
 | 
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.1, warning=FALSE, message=FALSE}
 ##################################
 # Loading R libraries
@@ -78,6 +81,8 @@ PDA <- GermanCredit
   row.names=NULL)
 )
 ```
+
+</details>
 
 ##  1.2 Data Quality Assessment
 |
@@ -125,6 +130,10 @@ PDA <- GermanCredit
 |
 | **[D]** No high skewness observed for any variable (with Skewness>3 or Skewness<(-3)).
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.2, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -365,6 +374,8 @@ if (length(names(DQA.Predictors.Numeric))==0) {
 
 ```
 
+</details>
+
 ##  1.3 Data Preprocessing
 
 ### 1.3.1 Outlier
@@ -378,6 +389,10 @@ if (length(names(DQA.Predictors.Numeric))==0) {
 |      **[A.4]** <span style="color: #FF0000">NumberExistingCredits</span> variable (6 outliers detected)
 |      **[A.5]** <span style="color: #FF0000">NumberPeopleMaintenance</span> variable (155 outliers detected)
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.3.1, warning=FALSE, message=FALSE, fig.width=15, fig.height=3}
 ##################################
 # Loading dataset
@@ -424,6 +439,8 @@ print(paste0(NumericPredictorWithOutlierCount, " numeric variable(s) were noted 
 
 ```
 
+</details>
+
 ### 1.3.2 Zero and Near-Zero Variance
 |
 | Zero and near-zero variance data assessment:
@@ -445,6 +462,10 @@ print(paste0(NumericPredictorWithOutlierCount, " numeric variable(s) were noted 
 |      **[B.12]** <span style="color: #FF0000">OtherInstallmentPlans.Stores</span> variable (factor)
 |      **[B.13]** <span style="color: #FF0000">Job.UnemployedUnskilled</span> variable (factor)
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.3.2, warning=FALSE, message=FALSE}
 ##################################
 # Reusing dataset
@@ -529,12 +550,18 @@ if ((nrow(DPA_LowVariance[DPA_LowVariance$nzv,]))==0){
 
 ```
 
+</details>
+
 ### 1.3.3 Collinearity
 |
 | High collinearity data assessment:
 |
 | **[A]** No high correlation noted for any variable pair confirmed using the preprocessing summaries from the <mark style="background-color: #CCECFF">**caret**</mark> and <mark style="background-color: #CCECFF">**lares**</mark> packages.
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.3.3, warning=FALSE, message=FALSE}
 ##################################
 # Reusing dataset
@@ -620,6 +647,8 @@ if (DPA_HighlyCorrelatedCount > 0) {
 
 ```
 
+</details>
+
 ### 1.3.4 Linear Dependencies
 |
 | Linear dependency data assessment:
@@ -636,6 +665,10 @@ if (DPA_HighlyCorrelatedCount > 0) {
 |      **[B.3]** <span style="color: #FF0000">CheckingAccountStatus.gt.200</span> variable (factor)
 |      **[B.4]** <span style="color: #FF0000">CheckingAccountStatus.none</span> variable (factor)
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.3.4, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -717,6 +750,8 @@ if (DPA_LinearlyDependentCount > 0) {
 
 ```
 
+</details>
+
 ### 1.3.5 Pre-Processed Dataset
 |
 | Pre-Modelling dataset assessment:
@@ -735,6 +770,10 @@ if (DPA_LinearlyDependentCount > 0) {
 |      **[C.4]** No predictors removed due to high correlation
 |      **[C.5]** 3 predictors removed due to linear dependencies
 | 
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.3.5, warning=FALSE, message=FALSE}
 ##################################
 # Creating the pre-modelling dataset
@@ -763,6 +802,8 @@ PMA_PreModelling <- PMA_ExcludedLowVariance_ExcludedLinearlyDependent
 
 ```
 
+</details>
+
 ##  1.4 Data Exploration
 |
 | Exploratory data analysis:
@@ -784,6 +825,10 @@ PMA_PreModelling <- PMA_ExcludedLowVariance_ExcludedLinearlyDependent
 |      **[A.14]** <span style="color: #FF0000">Housing.Rent</span> variable (factor)
 |      **[A.15]** <span style="color: #FF0000">Housing.Own</span> variable (factor)
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.4, warning=FALSE, message=FALSE}
 ##################################
 # Loading dataset
@@ -1394,6 +1439,8 @@ grid.arrange(PropTable_BarChart_28,
 
 ```
 
+</details>
+
 ##  1.5 Hyperparameter Tuning and Internal Model Validation
 |
 | Model description:
@@ -1422,6 +1469,10 @@ grid.arrange(PropTable_BarChart_28,
 |
 | **[D]** Model performance will be evaluated using the <span style="color: #FF0000">Accuracy</span> metric which refers to the proportion of correct model classifications with respect to the total number of observations.
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5, warning=FALSE, message=FALSE}
 ##################################
 # Creating the pre-modelling dataset
@@ -1433,6 +1484,8 @@ MA_Train        <- PMA_PreModelling[ MA_Train_Index, ]
 MA_Test         <- PMA_PreModelling[-MA_Train_Index, ]
 
 ```
+
+</details>
 
 ### 1.5.1 Apparent and External Validation - Split-Sample
 |
@@ -1454,6 +1507,10 @@ MA_Test         <- PMA_PreModelling[-MA_Train_Index, ]
 |      **[B.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 73.00% Accuracy
 |      **[B.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 72.50% Accuracy 
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.1, warning=FALSE, message=FALSE}
 ##################################
 # Creating the modelling dataset
@@ -1813,6 +1870,8 @@ TestPerformance_Data
 
 ```
 
+</details>
+
 ### 1.5.2 Internal Validation - K-Fold Cross-Validation
 |
 | [K-Fold Cross-Validation](http://appliedpredictivemodeling.com/) involves dividing the training set after a random shuffle into a user-defined K number of smaller non-overlapping sets called folds. Each unique fold is assigned as the hold-out test data to assess the model trained from the data set collected from all the remaining K-1 folds. The evaluation score is retained but the model is discarded. The process is recursively performed resulting to a total of K fitted models and evaluated on the K hold-out test sets. All K-computed performance measures reported from the process are then averaged to represent the estimated performance of the model. This approach can be computationally expensive and may be highly dependent on how the data was randomly assigned to their respective folds, but does not waste too much data which is a major advantage in problems where the number of samples is very small.
@@ -1826,6 +1885,10 @@ TestPerformance_Data
 |      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 70.38% Accuracy
 |      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 69.25% Accuracy
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.2, warning=FALSE, message=FALSE}
 ################################################################################
 # Applying k-fold cross validation
@@ -1885,6 +1948,8 @@ CV.5Performance_Data
 
 ```
 
+</details>
+
 ### 1.5.3 Internal Validation - Repeated K-Fold Cross-Validation
 |
 | [Repeated K-Fold Cross-Validation](http://appliedpredictivemodeling.com/) improves on the potentially noisy estimate of model performance via K-Fold cross-validation. Each time the procedure is run, a different split of the dataset into K folds can be implemented, and in turn, the distribution of performance scores can be different, resulting in a different mean estimate of model performance. The amount of difference in the estimated performance from one run of K-Fold cross-validation to another is dependent upon the model that is being used and on the data set itself. One solution to reduce the noise in the estimated model performance is by simply repeating the cross-validation procedure multiple times using different random seeds and reporting the mean result across all folds from all runs. This will reduce the bias in the model’s estimated performance by generating a more accurate estimate of the true unknown underlying mean performance of the model on the data set.
@@ -1898,6 +1963,10 @@ CV.5Performance_Data
 |      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 71.54% Accuracy
 |      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 71.24% Accuracy
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.3, warning=FALSE, message=FALSE}
 ################################################################################
 # Applying repeated k-fold cross validation
@@ -1958,6 +2027,8 @@ RCV.10Performance_Data
                                     }))
 ```
 
+</details>
+
 ### 1.5.4 Internal Validation - Leave-One-Out Cross Validation (LOOCV)
 |
 | [Leave-One-Out Cross Validation](http://appliedpredictivemodeling.com/) is an extreme configuration of the K-Fold cross-validation where K is set to the number of examples in the data set. It requires one model to be created and evaluated for each sample in the training data set resulting to N models, driving a maximum computational cost. Each observation is considered as the validation set and the rest (N-1) observations are considered as the training set. Given the improved estimate of model performance, LOOCV is appropriate when an accurate estimate of model performance is critical. This particularly case when the data set is small which can lead to model over-fitting during training and biased estimates of model performance. Further, given that no sampling of the training data set is used, this estimation procedure is deterministic, unlike train-test splits and other K-Fold cross-validation confirmations that provide a stochastic estimate of model performance.
@@ -1971,6 +2042,10 @@ RCV.10Performance_Data
 |      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 61.88% Accuracy
 |      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 65.75% Accuracy
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.4, warning=FALSE, message=FALSE}
 ################################################################################
 # Applying leave-one-out cross validation
@@ -2020,6 +2095,8 @@ LOOCVPerformance_Data
                                     }))
 ```
 
+</details>
+
 ### 1.5.5 Internal Validation - Leave-Group-Out Cross Validation (LGOCV)
 |
 | [Leave-Group-Out Cross Validation](http://appliedpredictivemodeling.com/) is also referred to as the Monte Carlo or shuffle-split cross-validation, which repeatedly creates multiple random splits of the data into training and test sets, given a defined train-test proportion and the number of iterations. The process involves fitting the model on the train data set in that iteration and calculating the accuracy of the fitted model on the test data set. Model performance is summarized by taking the average of all the test errors. The bias of the resampling technique decreases as the amount of data in the subset approaches that in the modelling set. While increasing the number of repetitions has the effect of decreasing the uncertainty of the performance estimates.
@@ -2033,6 +2110,10 @@ LOOCVPerformance_Data
 |      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 71.23% Accuracy (Best)
 |      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 71.11% Accuracy
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.5, warning=FALSE, message=FALSE}
 ################################################################################
 # Applying leave-group-out cross validation
@@ -2094,6 +2175,8 @@ LGOCVPerformance_Data
 
 ```
 
+</details>
+
 ### 1.5.6 Internal Validation - Bootstrap Validation
 |
 | [Bootstrap Validation](http://appliedpredictivemodeling.com/) takes random samples with replacement from the training set equal to the number of observations in the data set, given a defined number of iterations. Since the sampling is with replacement, there is a very strong likelihood that some training set samples will be represented more than once. As a consequence of this, some training set data points will not be contained in the bootstrap sample. The model is trained on the bootstrap sample and those data points not in that sample, referred to as out-of-bag samples are the unique sets of instances that are not used for model fitting, are predicted as hold-outs. The model performance metric is calculated from each bootstrap sample with all results consolidated and averaged to estimate the overall performance of the model. 
@@ -2107,6 +2190,10 @@ LGOCVPerformance_Data
 |      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 71.11% Accuracy
 |      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 71.24% Accuracy (Best)
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.6, warning=FALSE, message=FALSE}
 ################################################################################
 # Applying bootstrap validation
@@ -2167,6 +2254,8 @@ BootPerformance_Data
 
 ```
 
+</details>
+
 ### 1.5.7 Internal Validation - Bootstrap 0.632 Validation
 |
 | [Bootstrap 0.632 Validation](https://www.tandfonline.com/doi/abs/10.1080/01621459.1983.10477973) is an improvement of the bootstrap cross-validation by addressing its pessimistic bias. The pessimistic bias in the classic bootstrap method can be attributed to the fact that the bootstrap samples only contain approximately 63.2% of the unique samples from the original data set as bootstrap training sets and reserve 36.8% out-of-bag samples for testing in each iteration. To address the bias that is due to the sampling with replacement, the 0.632 bootstrap applies a weighted sum of the bootstrapped resubstitution error by 0.632 and the out-of-bag bootstrapped estimate of the prediction error by 0.368.
@@ -2180,6 +2269,10 @@ BootPerformance_Data
 |      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 73.46% Accuracy
 |      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 73.35% Accuracy
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.7, warning=FALSE, message=FALSE}
 ################################################################################
 # Applying bootstrap 0.632 validation
@@ -2240,6 +2333,8 @@ Boot632Performance_Data
 
 ```
 
+</details>
+
 ### 1.5.8 Internal Validation - Bootstrap Validation with Optimism Estimation
 |
 | [Bootstrap Validation with Optimism Estimation](http://clinicalpredictionmodels.org/) is a further improvement of the original bootstrap process for calculating nearly unbiased and relatively stable estimates of optimism for a specific model performance metric. By subtracting the optimism from the performance metric, a corrected version can be obtained which better accounts for possible overfitting, which has been shown through numerous simulation studies as able to produce much more accurate estimates of true model performance than simply obtaining bootstrap estimates of performance metrics directly. The process involves training a model on a sample dataset, and recording the value of a performance metric of interest. Sufficiently many bootstrap samples are formed by drawing randomly with replacement from the original sample data set. New models are trained on each bootstrap sample, and each corresponding value of the performance metric for each bootstrap-sample-derived model is recorded. Each bootstrap-sample-derived model is applied to the original sample dataset, and the performance metric is measured. Optimism values are estimated by taking the mean of the differences between the the apparent performance of each bootstrap-sample-derived mode and each bootstrap-sample-derived model's performance when tested on the original sample. Rhe optimism-corrected value of the performance metric is then determined as the difference between the calculated naive values and the estimated optimism. 
@@ -2253,6 +2348,10 @@ Boot632Performance_Data
 |      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 71.64% Accuracy
 |      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 72.14% Accuracy
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.8, warning=FALSE, message=FALSE}
 ################################################################################
 # Applying bootstrap with optimism estimation validation
@@ -2313,6 +2412,8 @@ BootOptimismPerformance_Data
 
 ```
 
+</details>
+
 ## 1.6 Model Evaluation Summary
 |
 | Model performance comparison:
@@ -2371,6 +2472,10 @@ BootOptimismPerformance_Data
 |      **[D.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 74.00% Accuracy (Final) 
 |      **[D.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 74.50% Accuracy (Optimal)
 |
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
 ```{r section_1.5.9, warning=FALSE, message=FALSE}
 ################################################################################
 # Consolidating all model performance results
@@ -2398,6 +2503,8 @@ fancyRpartPlot(rpartFit.Apparent.CP.010.Pruned, caption = NULL)
 rpartFit.Apparent.CP.010.Pruned.Summary$variable.importance
 
 ```
+
+</details>
 
 # **2. References**
 |
