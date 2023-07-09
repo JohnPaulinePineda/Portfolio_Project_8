@@ -1,5 +1,5 @@
 ---
-title: "R : Resampling Procedures for Model Hyperparameter Tuning and Internal Validation"
+title: "Supervised Learning : Resampling Procedures for Model Hyperparameter Tuning and Internal Validation"
 author: "John Pauline Pineda"
 date: "November 24, 2022"
 output: 
