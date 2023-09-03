@@ -1842,7 +1842,7 @@ ApparentPerformance_Data
 
 
 Performance <- Test
-Validation <- c(rep("EV_SSHV: External Validation",5))
+Validation <- c(rep("EV_SSHV: External - Split-Sample",5))
 TestPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance))
 TestPerformance_Data$Performance <- as.numeric(as.character(TestPerformance_Data$Performance))
 TestPerformance_Data$Complexity_Parameter <- factor(TestPerformance_Data$Complexity_Parameter,
@@ -1915,7 +1915,7 @@ CV.5.LCL <- rpartFit.CV.5$results$Accuracy-2*rpartFit.CV.5$results$AccuracySD
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- CV.5
-Validation <- c(rep("IV_KFCV: Internal Validation - K-Fold CV",5))
+Validation <- c(rep("IV_KFCV: Internal - K-Fold CV",5))
 CV.5Performance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,CV.5.UCL,CV.5.LCL))
 CV.5Performance_Data$Performance <- as.numeric(as.character(CV.5Performance_Data$Performance))
 CV.5Performance_Data$CV.5.UCL <- as.numeric(as.character(CV.5Performance_Data$CV.5.UCL))
@@ -1995,7 +1995,7 @@ RCV.10.LCL <- rpartFit.RCV.10$results$Accuracy-2*rpartFit.RCV.10$results$Accurac
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- RCV.10
-Validation <- c(rep("IV_RKFCV: Internal Validation - Repeated K-Fold CV",5))
+Validation <- c(rep("IV_RKFCV: Internal - Repeated K-Fold CV",5))
 RCV.10Performance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,RCV.10.UCL,RCV.10.LCL))
 RCV.10Performance_Data$Performance <- as.numeric(as.character(RCV.10Performance_Data$Performance))
 RCV.10Performance_Data$RCV.10.UCL <- as.numeric(as.character(RCV.10Performance_Data$RCV.10.UCL))
@@ -2070,7 +2070,7 @@ LOOCV <- rpartFit.LOOCV$results$Accuracy
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- LOOCV
-Validation <- c(rep("IV_LOOCV: Internal Validation - LOOCV",5))
+Validation <- c(rep("IV_LOOCV: Internal - LOOCV",5))
 LOOCVPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance))
 LOOCVPerformance_Data$Performance <- as.numeric(as.character(LOOCVPerformance_Data$Performance))
 LOOCVPerformance_Data$Complexity_Parameter <- factor(LOOCVPerformance_Data$Complexity_Parameter,
@@ -2142,7 +2142,7 @@ LGOCV.LCL <- rpartFit.LGOCV$results$Accuracy-2*rpartFit.LGOCV$results$AccuracySD
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- LGOCV
-Validation <- c(rep("IV_LGOCV: Internal Validation - LGOCV",5))
+Validation <- c(rep("IV_LGOCV: Internal - LGOCV",5))
 LGOCVPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,LGOCV.UCL,LGOCV.LCL))
 LGOCVPerformance_Data$Performance <- as.numeric(as.character(LGOCVPerformance_Data$Performance))
 LGOCVPerformance_Data$LGOCV.UCL <- as.numeric(as.character(LGOCVPerformance_Data$LGOCV.UCL))
@@ -2221,7 +2221,7 @@ Boot.LCL <- rpartFit.Boot$results$Accuracy-2*rpartFit.Boot$results$AccuracySD
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- Boot
-Validation <- c(rep("IV_BV: Internal Validation - Bootstrap",5))
+Validation <- c(rep("IV_BV: Internal - Bootstrap",5))
 BootPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,Boot.UCL,Boot.LCL))
 BootPerformance_Data$Performance <- as.numeric(as.character(BootPerformance_Data$Performance))
 BootPerformance_Data$Boot.UCL <- as.numeric(as.character(BootPerformance_Data$Boot.UCL))
@@ -2300,7 +2300,7 @@ Boot632.LCL <- rpartFit.Boot632$results$Accuracy-2*rpartFit.Boot632$results$Accu
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- Boot632
-Validation <- c(rep("IV_B632V: Internal Validation - Bootstrap 0.632",5))
+Validation <- c(rep("IV_B632V: Internal - Bootstrap 0.632",5))
 Boot632Performance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,Boot632.UCL,Boot632.LCL))
 Boot632Performance_Data$Performance <- as.numeric(as.character(Boot632Performance_Data$Performance))
 Boot632Performance_Data$Boot632.UCL <- as.numeric(as.character(Boot632Performance_Data$Boot632.UCL))
@@ -2379,7 +2379,7 @@ BootOptimism.LCL <- rpartFit.BootOptimism$results$Accuracy-2*rpartFit.BootOptimi
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- BootOptimism
-Validation <- c(rep("IV_BVOE: Internal Validation - Bootstrap Optimism",5))
+Validation <- c(rep("IV_BVOE: Internal - Bootstrap Optimism",5))
 BootOptimismPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,BootOptimism.UCL,BootOptimism.LCL))
 BootOptimismPerformance_Data$Performance <- as.numeric(as.character(BootOptimismPerformance_Data$Performance))
 BootOptimismPerformance_Data$BootOptimism.UCL <- as.numeric(as.character(BootOptimismPerformance_Data$BootOptimism.UCL))
