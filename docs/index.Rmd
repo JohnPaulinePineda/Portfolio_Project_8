@@ -1487,7 +1487,7 @@ MA_Test         <- PMA_PreModelling[-MA_Train_Index, ]
 
 </details>
 
-### 1.5.1 Apparent and External Validation - Split-Sample
+### 1.5.1 Apparent and External Validation - Split-Sample Holdout Validation (AV | EV_SSHV)
 |
 | [Split-Sample Holdout Validation](http://appliedpredictivemodeling.com/) involves dividing the data set into the training and testing data sets. The data sample is shuffled so that samples get mixed and lead to an accurate training data set. The model is typically trained with a large number of samples as compared to the samples available in the testing data set. The next step is to develop the model with the training data set and once it is trained, the model is evaluated with the testing data set. While the training data set is kept to be more than the testing data set in terms of size, it could be possible that the training data set is not representative of the whole data sample. The testing data set could also potentially contain essential characteristics of the whole data that can get missed out.
 |
@@ -1816,7 +1816,7 @@ Test <- c(Test.CP.001,Test.CP.005,Test.CP.010,Test.CP.015,Test.CP.020)
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- Apparent
-Validation <- c(rep("Apparent",5))
+Validation <- c(rep("AV: Apparent",5))
 ApparentPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance))
 ApparentPerformance_Data$Performance <- as.numeric(as.character(ApparentPerformance_Data$Performance))
 ApparentPerformance_Data$Complexity_Parameter <- factor(ApparentPerformance_Data$Complexity_Parameter,
@@ -1842,7 +1842,7 @@ ApparentPerformance_Data
 
 
 Performance <- Test
-Validation <- c(rep("External Validation",5))
+Validation <- c(rep("EV_SSHV: External Validation",5))
 TestPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance))
 TestPerformance_Data$Performance <- as.numeric(as.character(TestPerformance_Data$Performance))
 TestPerformance_Data$Complexity_Parameter <- factor(TestPerformance_Data$Complexity_Parameter,
@@ -1872,7 +1872,7 @@ TestPerformance_Data
 
 </details>
 
-### 1.5.2 Internal Validation - K-Fold Cross-Validation
+### 1.5.2 Internal Validation - K-Fold Cross-Validation (IV_KFCV)
 |
 | [K-Fold Cross-Validation](http://appliedpredictivemodeling.com/) involves dividing the training set after a random shuffle into a user-defined K number of smaller non-overlapping sets called folds. Each unique fold is assigned as the hold-out test data to assess the model trained from the data set collected from all the remaining K-1 folds. The evaluation score is retained but the model is discarded. The process is recursively performed resulting to a total of K fitted models and evaluated on the K hold-out test sets. All K-computed performance measures reported from the process are then averaged to represent the estimated performance of the model. This approach can be computationally expensive and may be highly dependent on how the data was randomly assigned to their respective folds, but does not waste too much data which is a major advantage in problems where the number of samples is very small.
 |
@@ -1915,7 +1915,7 @@ CV.5.LCL <- rpartFit.CV.5$results$Accuracy-2*rpartFit.CV.5$results$AccuracySD
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- CV.5
-Validation <- c(rep("Internal Validation - K-Fold CV",5))
+Validation <- c(rep("IV_KFCV: Internal Validation - K-Fold CV",5))
 CV.5Performance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,CV.5.UCL,CV.5.LCL))
 CV.5Performance_Data$Performance <- as.numeric(as.character(CV.5Performance_Data$Performance))
 CV.5Performance_Data$CV.5.UCL <- as.numeric(as.character(CV.5Performance_Data$CV.5.UCL))
@@ -1950,7 +1950,7 @@ CV.5Performance_Data
 
 </details>
 
-### 1.5.3 Internal Validation - Repeated K-Fold Cross-Validation
+### 1.5.3 Internal Validation - Repeated K-Fold Cross-Validation (IV_RKFCV)
 |
 | [Repeated K-Fold Cross-Validation](http://appliedpredictivemodeling.com/) improves on the potentially noisy estimate of model performance via K-Fold cross-validation. Each time the procedure is run, a different split of the dataset into K folds can be implemented, and in turn, the distribution of performance scores can be different, resulting in a different mean estimate of model performance. The amount of difference in the estimated performance from one run of K-Fold cross-validation to another is dependent upon the model that is being used and on the data set itself. One solution to reduce the noise in the estimated model performance is by simply repeating the cross-validation procedure multiple times using different random seeds and reporting the mean result across all folds from all runs. This will reduce the bias in the model’s estimated performance by generating a more accurate estimate of the true unknown underlying mean performance of the model on the data set.
 |
@@ -1995,7 +1995,7 @@ RCV.10.LCL <- rpartFit.RCV.10$results$Accuracy-2*rpartFit.RCV.10$results$Accurac
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- RCV.10
-Validation <- c(rep("Internal Validation - Repeated K-Fold CV",5))
+Validation <- c(rep("IV_RKFCV: Internal Validation - Repeated K-Fold CV",5))
 RCV.10Performance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,RCV.10.UCL,RCV.10.LCL))
 RCV.10Performance_Data$Performance <- as.numeric(as.character(RCV.10Performance_Data$Performance))
 RCV.10Performance_Data$RCV.10.UCL <- as.numeric(as.character(RCV.10Performance_Data$RCV.10.UCL))
@@ -2029,7 +2029,7 @@ RCV.10Performance_Data
 
 </details>
 
-### 1.5.4 Internal Validation - Leave-One-Out Cross Validation (LOOCV)
+### 1.5.4 Internal Validation - Leave-One-Out Cross Validation (IV_LOOCV)
 |
 | [Leave-One-Out Cross Validation](http://appliedpredictivemodeling.com/) is an extreme configuration of the K-Fold cross-validation where K is set to the number of examples in the data set. It requires one model to be created and evaluated for each sample in the training data set resulting to N models, driving a maximum computational cost. Each observation is considered as the validation set and the rest (N-1) observations are considered as the training set. Given the improved estimate of model performance, LOOCV is appropriate when an accurate estimate of model performance is critical. This particularly case when the data set is small which can lead to model over-fitting during training and biased estimates of model performance. Further, given that no sampling of the training data set is used, this estimation procedure is deterministic, unlike train-test splits and other K-Fold cross-validation confirmations that provide a stochastic estimate of model performance.
 |
@@ -2070,7 +2070,7 @@ LOOCV <- rpartFit.LOOCV$results$Accuracy
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- LOOCV
-Validation <- c(rep("Internal Validation - LOOCV",5))
+Validation <- c(rep("IV_LOOCV: Internal Validation - LOOCV",5))
 LOOCVPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance))
 LOOCVPerformance_Data$Performance <- as.numeric(as.character(LOOCVPerformance_Data$Performance))
 LOOCVPerformance_Data$Complexity_Parameter <- factor(LOOCVPerformance_Data$Complexity_Parameter,
@@ -2097,7 +2097,7 @@ LOOCVPerformance_Data
 
 </details>
 
-### 1.5.5 Internal Validation - Leave-Group-Out Cross Validation (LGOCV)
+### 1.5.5 Internal Validation - Leave-Group-Out Cross Validation (IV_LGOCV)
 |
 | [Leave-Group-Out Cross Validation](http://appliedpredictivemodeling.com/) is also referred to as the Monte Carlo or shuffle-split cross-validation, which repeatedly creates multiple random splits of the data into training and test sets, given a defined train-test proportion and the number of iterations. The process involves fitting the model on the train data set in that iteration and calculating the accuracy of the fitted model on the test data set. Model performance is summarized by taking the average of all the test errors. The bias of the resampling technique decreases as the amount of data in the subset approaches that in the modelling set. While increasing the number of repetitions has the effect of decreasing the uncertainty of the performance estimates.
 |
@@ -2142,7 +2142,7 @@ LGOCV.LCL <- rpartFit.LGOCV$results$Accuracy-2*rpartFit.LGOCV$results$AccuracySD
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- LGOCV
-Validation <- c(rep("Internal Validation - LGOCV",5))
+Validation <- c(rep("IV_LGOCV: Internal Validation - LGOCV",5))
 LGOCVPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,LGOCV.UCL,LGOCV.LCL))
 LGOCVPerformance_Data$Performance <- as.numeric(as.character(LGOCVPerformance_Data$Performance))
 LGOCVPerformance_Data$LGOCV.UCL <- as.numeric(as.character(LGOCVPerformance_Data$LGOCV.UCL))
@@ -2177,7 +2177,7 @@ LGOCVPerformance_Data
 
 </details>
 
-### 1.5.6 Internal Validation - Bootstrap Validation
+### 1.5.6 Internal Validation - Bootstrap Validation (IV_BV)
 |
 | [Bootstrap Validation](http://appliedpredictivemodeling.com/) takes random samples with replacement from the training set equal to the number of observations in the data set, given a defined number of iterations. Since the sampling is with replacement, there is a very strong likelihood that some training set samples will be represented more than once. As a consequence of this, some training set data points will not be contained in the bootstrap sample. The model is trained on the bootstrap sample and those data points not in that sample, referred to as out-of-bag samples are the unique sets of instances that are not used for model fitting, are predicted as hold-outs. The model performance metric is calculated from each bootstrap sample with all results consolidated and averaged to estimate the overall performance of the model. 
 |
@@ -2221,7 +2221,7 @@ Boot.LCL <- rpartFit.Boot$results$Accuracy-2*rpartFit.Boot$results$AccuracySD
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- Boot
-Validation <- c(rep("Internal Validation - Bootstrap",5))
+Validation <- c(rep("IV_BV: Internal Validation - Bootstrap",5))
 BootPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,Boot.UCL,Boot.LCL))
 BootPerformance_Data$Performance <- as.numeric(as.character(BootPerformance_Data$Performance))
 BootPerformance_Data$Boot.UCL <- as.numeric(as.character(BootPerformance_Data$Boot.UCL))
@@ -2256,7 +2256,7 @@ BootPerformance_Data
 
 </details>
 
-### 1.5.7 Internal Validation - Bootstrap 0.632 Validation
+### 1.5.7 Internal Validation - Bootstrap 0.632 Validation (IV_B632V)
 |
 | [Bootstrap 0.632 Validation](https://www.tandfonline.com/doi/abs/10.1080/01621459.1983.10477973) is an improvement of the bootstrap cross-validation by addressing its pessimistic bias. The pessimistic bias in the classic bootstrap method can be attributed to the fact that the bootstrap samples only contain approximately 63.2% of the unique samples from the original data set as bootstrap training sets and reserve 36.8% out-of-bag samples for testing in each iteration. To address the bias that is due to the sampling with replacement, the 0.632 bootstrap applies a weighted sum of the bootstrapped resubstitution error by 0.632 and the out-of-bag bootstrapped estimate of the prediction error by 0.368.
 |
@@ -2300,7 +2300,7 @@ Boot632.LCL <- rpartFit.Boot632$results$Accuracy-2*rpartFit.Boot632$results$Accu
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- Boot632
-Validation <- c(rep("Internal Validation - Bootstrap 0.632",5))
+Validation <- c(rep("IV_B632V: Internal Validation - Bootstrap 0.632",5))
 Boot632Performance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,Boot632.UCL,Boot632.LCL))
 Boot632Performance_Data$Performance <- as.numeric(as.character(Boot632Performance_Data$Performance))
 Boot632Performance_Data$Boot632.UCL <- as.numeric(as.character(Boot632Performance_Data$Boot632.UCL))
@@ -2335,7 +2335,7 @@ Boot632Performance_Data
 
 </details>
 
-### 1.5.8 Internal Validation - Bootstrap Validation with Optimism Estimation
+### 1.5.8 Internal Validation - Bootstrap Validation with Optimism Estimation (IV_BVOE)
 |
 | [Bootstrap Validation with Optimism Estimation](http://clinicalpredictionmodels.org/) is a further improvement of the original bootstrap process for calculating nearly unbiased and relatively stable estimates of optimism for a specific model performance metric. By subtracting the optimism from the performance metric, a corrected version can be obtained which better accounts for possible overfitting, which has been shown through numerous simulation studies as able to produce much more accurate estimates of true model performance than simply obtaining bootstrap estimates of performance metrics directly. The process involves training a model on a sample dataset, and recording the value of a performance metric of interest. Sufficiently many bootstrap samples are formed by drawing randomly with replacement from the original sample data set. New models are trained on each bootstrap sample, and each corresponding value of the performance metric for each bootstrap-sample-derived model is recorded. Each bootstrap-sample-derived model is applied to the original sample dataset, and the performance metric is measured. Optimism values are estimated by taking the mean of the differences between the the apparent performance of each bootstrap-sample-derived mode and each bootstrap-sample-derived model's performance when tested on the original sample. Rhe optimism-corrected value of the performance metric is then determined as the difference between the calculated naive values and the estimated optimism. 
 |
@@ -2379,7 +2379,7 @@ BootOptimism.LCL <- rpartFit.BootOptimism$results$Accuracy-2*rpartFit.BootOptimi
 Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
 
 Performance <- BootOptimism
-Validation <- c(rep("Internal Validation - Bootstrap Optimism",5))
+Validation <- c(rep("IV_BVOE: Internal Validation - Bootstrap Optimism",5))
 BootOptimismPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,BootOptimism.UCL,BootOptimism.LCL))
 BootOptimismPerformance_Data$Performance <- as.numeric(as.character(BootOptimismPerformance_Data$Performance))
 BootOptimismPerformance_Data$BootOptimism.UCL <- as.numeric(as.character(BootOptimismPerformance_Data$BootOptimism.UCL))
