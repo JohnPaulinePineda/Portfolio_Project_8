@@ -1,0 +1,2546 @@
+---
+title: "Supervised Learning : Resampling Procedures for Model Hyperparameter Tuning and Internal Validation"
+author: "John Pauline Pineda"
+date: "November 24, 2022"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    theme: readable
+    highlight: tango
+    css: doc.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=15, fig.height=10)
+```
+# **1. Table of Contents**
+|
+| This project explores different resampling procedures during model hyperparameter tuning and internal validation using various helpful packages in <mark style="background-color: #CCECFF">**R**</mark>. Using a **Recursive Partitioning and Regression Trees** model structure, resampling methods applied in the analysis for tuning model hyperparameters and internally validating model performance included **K-Fold Cross Validation**, **Repeated K-Fold Cross Validation**, **Leave-One-Out Cross Validation**, **Leave-Group-Out Cross Validation**, **Bootstrap Validation**, **Bootstrap 0.632 Validation** and **Bootstrap with Optimism-Estimation Validation**. The resulting predictions derived from the candidate models with their respective optimal hyperparameters were evaluated in terms of their classification performance using the accuracy metric, which were subsequently compared to the baseline model’s apparent performance values. All results were consolidated in a [<span style="color: #FF0000">**Summary**</span>](#summary) presented at the end of the document.
+|
+| Data resampling consists of various techniques for estimating the generalizability of a model using only the data available during model development, which typically involves partitioning from the available data to simulate potential variability in the wider population. This process is essential for optimizing model hyperparameters and internally validating a predictive model's performance with respect to optimism or overfitting. Overfitting refers to the condition when a statistical model intended to make general predictions about a population instead narrowly describes the unique variations present only in the sample dataset used to train it. One common cause for overfitting is using a sample dataset that's insufficiently representative of the population it was drawn from. Hyperparameter tuning is the process of determining the optimal combination of hyperparameter values that maximizes the model performance by running multiple trials in a single training process. Hyperparameters refer to external configuration variables that are used to control the learning process and have a significant effect on the performance of machine learning models but are fixed and cannot be directly learned from the regular training process. The resampling procedures applied in this study (mostly contained in the <mark style="background-color: #CCECFF">**caret**</mark> package) attempt to train the models sequentially by searching for the optimal hyperparameters and internally estimating the model performance for unseen data.
+|
+##  1.1 Sample Data
+|
+| The <mark style="background-color: #EEEEEE;color: #FF0000">**GermanCredit**</mark>  dataset from the  <mark style="background-color: #CCECFF">**caret**</mark> package was used for this illustrated example.
+|
+| Preliminary dataset assessment:
+|
+| **[A]** 1000 rows (observations)
+|
+| **[B]** 62 columns (variables)
+|      **[B.1]** 1/62 response = <span style="color: #FF0000">Class</span> variable (factor)
+|             **[B.1.1]** 2 levels = <span style="color: #FF0000">Bad</span> versus <span style="color: #FF0000">Good</span>
+|      **[B.2]** 61/62 predictors = All remaining variables (54/61 factor + 7/61 numeric)
+|     
+| 
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.1, warning=FALSE, message=FALSE}
+##################################
+# Loading R libraries
+##################################
+library(AppliedPredictiveModeling)
+library(caret)
+library(rpart)
+library(lattice)
+library(dplyr)
+library(moments)
+library(skimr)
+library(RANN)
+library(corrplot)
+library(tidyverse)
+library(lares)
+library(DMwR)
+library(gridExtra)
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
+
+##################################
+# Loading dataset
+##################################
+data(GermanCredit)
+
+##################################
+# Performing a general exploration of the dataset
+##################################
+dim(GermanCredit)
+str(GermanCredit)
+summary(GermanCredit)
+
+##################################
+# Formulating a data type assessment summary
+##################################
+PDA <- GermanCredit
+(PDA.Summary <- data.frame(
+  Column.Index=c(1:length(names(PDA))),
+  Column.Name= names(PDA), 
+  Column.Type=sapply(PDA, function(x) class(x)), 
+  row.names=NULL)
+)
+```
+
+</details>
+
+##  1.2 Data Quality Assessment
+|
+| **[A]** No missing observations noted for any variable.
+|
+| **[B]** Low variance observed for 30 variables with First.Second.Mode.Ratio>5.
+|      **[B.1]** <span style="color: #FF0000">ForeignWorker</span> variable (factor)
+|      **[B.2]** <span style="color: #FF0000">CheckingAccountStatus.gt.200</span> variable (factor)
+|      **[B.3]** <span style="color: #FF0000">CreditHistory.NoCredit.AllPaid</span> variable (factor)
+|      **[B.4]** <span style="color: #FF0000">CreditHistory.ThisBank.AllPaid</span> variable (factor)
+|      **[B.5]** <span style="color: #FF0000">CreditHistory.Delay</span> variable (factor)
+|      **[B.6]** <span style="color: #FF0000">Purpose.UsedCar</span> variable (factor)
+|      **[B.7]** <span style="color: #FF0000">Purpose.DomesticAppliance</span> variable (factor)
+|      **[B.8]** <span style="color: #FF0000">Purpose.Repairs</span> variable (factor)
+|      **[B.9]** <span style="color: #FF0000">Purpose.Education</span> variable (factor)
+|      **[B.10]** <span style="color: #FF0000">Purpose.Vacation</span> variable (factor)
+|      **[B.11]** <span style="color: #FF0000">Purpose.Retraining</span> variable (factor)
+|      **[B.12]** <span style="color: #FF0000">Purpose.Business</span> variable (factor)
+|      **[B.13]** <span style="color: #FF0000">Purpose.Other</span> variable (factor)
+|      **[B.14]** <span style="color: #FF0000">SavingsAccountBonds.100.to.500</span> variable (factor)
+|      **[B.15]** <span style="color: #FF0000">SavingsAccountBonds.500.to.1000</span> variable (factor)
+|      **[B.16]** <span style="color: #FF0000">SavingsAccountBonds.gt.1000</span> variable (factor)
+|      **[B.17]** <span style="color: #FF0000">EmploymentDuration.Unemployed</span> variable (factor)
+|      **[B.18]** <span style="color: #FF0000">Personal.Male.Divorced.Seperated</span> variable (factor)
+|      **[B.19]** <span style="color: #FF0000">Personal.Male.Married.Widowed</span> variable (factor)
+|      **[B.20]** <span style="color: #FF0000">Personal.Female.Single</span> variable (factor)
+|      **[B.21]** <span style="color: #FF0000">OtherDebtorsGuarantors.None</span> variable (factor)
+|      **[B.22]** <span style="color: #FF0000">OtherDebtorsGuarantors.CoApplicant</span> variable (factor)
+|      **[B.23]** <span style="color: #FF0000">OtherDebtorsGuarantors.Guarantor</span> variable (factor)
+|      **[B.24]** <span style="color: #FF0000">Property.Unknown</span> variable (factor)
+|      **[B.25]** <span style="color: #FF0000">OtherInstallmentPlans.Bank</span> variable (factor)
+|      **[B.26]** <span style="color: #FF0000">OtherInstallmentPlans.Stores</span> variable (factor)
+|      **[B.27]** <span style="color: #FF0000">Housing.ForFree</span> variable (factor)
+|      **[B.28]** <span style="color: #FF0000">Job.UnemployedUnskilled</span> variable (factor)
+|      **[B.29]** <span style="color: #FF0000">Job.Management.SelfEmp.HighlyQualified</span> variable (factor)
+|      **[B.30]** <span style="color: #FF0000">NumberPeopleMaintenance</span> variable (numeric)
+|
+| **[C]** Low variance observed for 4 variables with Unique.Count.Ratio<0.01.
+|      **[C.1]** <span style="color: #FF0000">InstallmentRatePercentage</span> variable (numeric)
+|      **[C.2]** <span style="color: #FF0000">ResidenceDuration</span> variable (numeric)
+|      **[C.3]** <span style="color: #FF0000">NumberExistingCredits</span> variable (numeric)
+|      **[C.4]** <span style="color: #FF0000">NumberPeopleMaintenance</span> variable (numeric)
+|
+| **[D]** No high skewness observed for any variable (with Skewness>3 or Skewness<(-3)).
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.2, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+DQA <- GermanCredit
+
+##################################
+# Formulating an overall data quality assessment summary
+##################################
+(DQA.Summary <- data.frame(
+  Column.Index=c(1:length(names(DQA))),
+  Column.Name= names(DQA), 
+  Column.Type=sapply(DQA, function(x) class(x)), 
+  Row.Count=sapply(DQA, function(x) nrow(DQA)),
+  NA.Count=sapply(DQA,function(x)sum(is.na(x))),
+  Fill.Rate=sapply(DQA,function(x)format(round((sum(!is.na(x))/nrow(DQA)),3),nsmall=3)),
+  row.names=NULL)
+)
+
+##################################
+# Listing all predictors
+##################################
+DQA.Predictors <- DQA[,!names(DQA) %in% c("Class")]
+
+##################################
+# Identifying and converting numeric predictors
+# which should have been factor predictors
+##################################
+
+DQA.Predictors.Numeric <- DQA.Predictors[,sapply(DQA.Predictors, is.numeric)]
+
+DQA.Predictors.Numeric.Max <- c()
+
+for (i in 1:ncol(DQA.Predictors.Numeric)){
+  DQA.Predictors.Numeric.Max.i <- max(DQA.Predictors.Numeric[,i])
+  DQA.Predictors.Numeric.Max <- append(DQA.Predictors.Numeric.Max,DQA.Predictors.Numeric.Max.i)
+}
+
+DQA.Predictors.Numeric.Max.Summary <- as.data.frame(cbind(names(DQA.Predictors.Numeric),DQA.Predictors.Numeric.Max)) 
+names(DQA.Predictors.Numeric.Max.Summary) <- c("Numeric.Predictors","Max")
+DQA.Predictors.Numeric.Max.Summary$Max <- as.numeric(as.character(DQA.Predictors.Numeric.Max.Summary$Max))
+
+DQA.Predictors.Numeric.To.Factor <- DQA.Predictors.Numeric.Max.Summary[DQA.Predictors.Numeric.Max.Summary$Max<2,]
+DQA.Predictors.Numeric.To.Factor.Names <- as.vector(DQA.Predictors.Numeric.To.Factor$Numeric.Predictors)
+
+DQA.Predictors[DQA.Predictors.Numeric.To.Factor.Names]<-lapply(DQA.Predictors[DQA.Predictors.Numeric.To.Factor.Names],factor)
+
+##################################
+# Listing all numeric predictors
+##################################
+DQA.Predictors.Numeric <- DQA.Predictors[,sapply(DQA.Predictors, is.numeric)]
+
+if (length(names(DQA.Predictors.Numeric))>0) {
+    print(paste0("There are ",
+               (length(names(DQA.Predictors.Numeric))),
+               " numeric predictor variable(s)."))
+} else {
+  print("There are no numeric predictor variables.")
+}
+
+##################################
+# Listing all factor predictors
+##################################
+DQA.Predictors.Factor <- DQA.Predictors[,sapply(DQA.Predictors, is.factor)]
+
+if (length(names(DQA.Predictors.Factor))>0) {
+    print(paste0("There are ",
+               (length(names(DQA.Predictors.Factor))),
+               " factor predictor variable(s)."))
+} else {
+  print("There are no factor predictor variables.")
+}
+
+##################################
+# Formulating a data quality assessment summary for factor predictors
+##################################
+if (length(names(DQA.Predictors.Factor))>0) {
+  
+  ##################################
+  # Formulating a function to determine the first mode
+  ##################################
+  FirstModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    ux[tab == max(tab)]
+  }
+
+  ##################################
+  # Formulating a function to determine the second mode
+  ##################################
+  SecondModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    fm = ux[tab == max(tab)]
+    sm = x[!(x %in% fm)]
+    usm <- unique(sm)
+    tabsm <- tabulate(match(sm, usm))
+    ifelse(is.na(usm[tabsm == max(tabsm)])==TRUE,
+           return("x"),
+           return(usm[tabsm == max(tabsm)]))
+  }
+  
+  (DQA.Predictors.Factor.Summary <- data.frame(
+  Column.Name= names(DQA.Predictors.Factor), 
+  Column.Type=sapply(DQA.Predictors.Factor, function(x) class(x)), 
+  Unique.Count=sapply(DQA.Predictors.Factor, function(x) length(unique(x))),
+  First.Mode.Value=sapply(DQA.Predictors.Factor, function(x) as.character(FirstModes(x)[1])),
+  Second.Mode.Value=sapply(DQA.Predictors.Factor, function(x) as.character(SecondModes(x)[1])),
+  First.Mode.Count=sapply(DQA.Predictors.Factor, function(x) sum(na.omit(x) == FirstModes(x)[1])),
+  Second.Mode.Count=sapply(DQA.Predictors.Factor, function(x) sum(na.omit(x) == SecondModes(x)[1])),
+  Unique.Count.Ratio=sapply(DQA.Predictors.Factor, function(x) format(round((length(unique(x))/nrow(DQA.Predictors.Factor)),3), nsmall=3)),
+  First.Second.Mode.Ratio=sapply(DQA.Predictors.Factor, function(x) format(round((sum(na.omit(x) == FirstModes(x)[1])/sum(na.omit(x) == SecondModes(x)[1])),3), nsmall=3)),
+  row.names=NULL)
+  )
+  
+} 
+
+##################################
+# Formulating a data quality assessment summary for numeric predictors
+##################################
+if (length(names(DQA.Predictors.Numeric))>0) {
+  
+  ##################################
+  # Formulating a function to determine the first mode
+  ##################################
+  FirstModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    ux[tab == max(tab)]
+  }
+
+  ##################################
+  # Formulating a function to determine the second mode
+  ##################################
+  SecondModes <- function(x) {
+    ux <- unique(na.omit(x))
+    tab <- tabulate(match(x, ux))
+    fm = ux[tab == max(tab)]
+    sm = na.omit(x)[!(na.omit(x) %in% fm)]
+    usm <- unique(sm)
+    tabsm <- tabulate(match(sm, usm))
+    ifelse(is.na(usm[tabsm == max(tabsm)])==TRUE,
+           return(0.00001),
+           return(usm[tabsm == max(tabsm)]))
+  }
+  
+  (DQA.Predictors.Numeric.Summary <- data.frame(
+  Column.Name= names(DQA.Predictors.Numeric), 
+  Column.Type=sapply(DQA.Predictors.Numeric, function(x) class(x)), 
+  Unique.Count=sapply(DQA.Predictors.Numeric, function(x) length(unique(x))),
+  Unique.Count.Ratio=sapply(DQA.Predictors.Numeric, function(x) format(round((length(unique(x))/nrow(DQA.Predictors.Numeric)),3), nsmall=3)),
+  First.Mode.Value=sapply(DQA.Predictors.Numeric, function(x) format(round((FirstModes(x)[1]),3),nsmall=3)),
+  Second.Mode.Value=sapply(DQA.Predictors.Numeric, function(x) format(round((SecondModes(x)[1]),3),nsmall=3)),
+  First.Mode.Count=sapply(DQA.Predictors.Numeric, function(x) sum(na.omit(x) == FirstModes(x)[1])),
+  Second.Mode.Count=sapply(DQA.Predictors.Numeric, function(x) sum(na.omit(x) == SecondModes(x)[1])),
+  First.Second.Mode.Ratio=sapply(DQA.Predictors.Numeric, function(x) format(round((sum(na.omit(x) == FirstModes(x)[1])/sum(na.omit(x) == SecondModes(x)[1])),3), nsmall=3)),
+  Minimum=sapply(DQA.Predictors.Numeric, function(x) format(round(min(x,na.rm = TRUE),3), nsmall=3)),
+  Mean=sapply(DQA.Predictors.Numeric, function(x) format(round(mean(x,na.rm = TRUE),3), nsmall=3)),
+  Median=sapply(DQA.Predictors.Numeric, function(x) format(round(median(x,na.rm = TRUE),3), nsmall=3)),
+  Maximum=sapply(DQA.Predictors.Numeric, function(x) format(round(max(x,na.rm = TRUE),3), nsmall=3)),
+  Skewness=sapply(DQA.Predictors.Numeric, function(x) format(round(skewness(x,na.rm = TRUE),3), nsmall=3)),
+  Kurtosis=sapply(DQA.Predictors.Numeric, function(x) format(round(kurtosis(x,na.rm = TRUE),3), nsmall=3)),
+  Percentile25th=sapply(DQA.Predictors.Numeric, function(x) format(round(quantile(x,probs=0.25,na.rm = TRUE),3), nsmall=3)),
+  Percentile75th=sapply(DQA.Predictors.Numeric, function(x) format(round(quantile(x,probs=0.75,na.rm = TRUE),3), nsmall=3)),
+  row.names=NULL)
+  )  
+  
+}
+
+##################################
+# Identifying potential data quality issues
+##################################
+
+##################################
+# Checking for missing observations
+##################################
+if ((nrow(DQA.Summary[DQA.Summary$NA.Count>0,]))>0){
+  print(paste0("Missing observations noted for ",
+               (nrow(DQA.Summary[DQA.Summary$NA.Count>0,])),
+               " variable(s) with NA.Count>0 and Fill.Rate<1.0."))
+  DQA.Summary[DQA.Summary$NA.Count>0,]
+} else {
+  print("No missing observations noted.")
+}
+
+##################################
+# Checking for zero or near-zero variance predictors
+##################################
+if (length(names(DQA.Predictors.Factor))==0) {
+  print("No factor predictors noted.")
+} else if (nrow(DQA.Predictors.Factor.Summary[as.numeric(as.character(DQA.Predictors.Factor.Summary$First.Second.Mode.Ratio))>5,])>0){
+  print(paste0("Low variance observed for ",
+               (nrow(DQA.Predictors.Factor.Summary[as.numeric(as.character(DQA.Predictors.Factor.Summary$First.Second.Mode.Ratio))>5,])),
+               " factor variable(s) with First.Second.Mode.Ratio>5."))
+  DQA.Predictors.Factor.Summary[as.numeric(as.character(DQA.Predictors.Factor.Summary$First.Second.Mode.Ratio))>5,]
+} else {
+  print("No low variance factor predictors due to high first-second mode ratio noted.")
+}
+
+if (length(names(DQA.Predictors.Numeric))==0) {
+  print("No numeric predictors noted.")
+} else if (nrow(DQA.Predictors.Numeric.Summary[as.numeric(as.character(DQA.Predictors.Numeric.Summary$First.Second.Mode.Ratio))>5,])>0){
+  print(paste0("Low variance observed for ",
+               (nrow(DQA.Predictors.Numeric.Summary[as.numeric(as.character(DQA.Predictors.Numeric.Summary$First.Second.Mode.Ratio))>5,])),
+               " numeric variable(s) with First.Second.Mode.Ratio>5."))
+  DQA.Predictors.Numeric.Summary[as.numeric(as.character(DQA.Predictors.Numeric.Summary$First.Second.Mode.Ratio))>5,]
+} else {
+  print("No low variance numeric predictors due to high first-second mode ratio noted.")
+}
+
+if (length(names(DQA.Predictors.Numeric))==0) {
+  print("No numeric predictors noted.")
+} else if (nrow(DQA.Predictors.Numeric.Summary[as.numeric(as.character(DQA.Predictors.Numeric.Summary$Unique.Count.Ratio))<0.01,])>0){
+  print(paste0("Low variance observed for ",
+               (nrow(DQA.Predictors.Numeric.Summary[as.numeric(as.character(DQA.Predictors.Numeric.Summary$Unique.Count.Ratio))<0.01,])),
+               " numeric variable(s) with Unique.Count.Ratio<0.01."))
+  DQA.Predictors.Numeric.Summary[as.numeric(as.character(DQA.Predictors.Numeric.Summary$Unique.Count.Ratio))<0.01,]
+} else {
+  print("No low variance numeric predictors due to low unique count ratio noted.")
+}
+
+##################################
+# Checking for skewed predictors
+##################################
+if (length(names(DQA.Predictors.Numeric))==0) {
+  print("No numeric predictors noted.")
+} else if (nrow(DQA.Predictors.Numeric.Summary[as.numeric(as.character(DQA.Predictors.Numeric.Summary$Skewness))>3 |
+                                               as.numeric(as.character(DQA.Predictors.Numeric.Summary$Skewness))<(-3),])>0){
+  print(paste0("High skewness observed for ",
+  (nrow(DQA.Predictors.Numeric.Summary[as.numeric(as.character(DQA.Predictors.Numeric.Summary$Skewness))>3 |
+                                               as.numeric(as.character(DQA.Predictors.Numeric.Summary$Skewness))<(-3),])),
+  " numeric variable(s) with Skewness>3 or Skewness<(-3)."))
+  DQA.Predictors.Numeric.Summary[as.numeric(as.character(DQA.Predictors.Numeric.Summary$Skewness))>3 |
+                                 as.numeric(as.character(DQA.Predictors.Numeric.Summary$Skewness))<(-3),]
+} else {
+  print("No skewed numeric predictors noted.")
+}
+
+```
+
+</details>
+
+##  1.3 Data Preprocessing
+
+### 1.3.1 Outlier
+|
+| **[A]** Outliers noted for 5 variables  with the numeric data visualized through a boxplot including observations classified as suspected outliers using the IQR criterion. The IQR criterion means that all observations above the (75th percentile + 1.5 x IQR) or below the (25th percentile - 1.5 x IQR) are suspected outliers, where IQR is the difference between the third quartile (75th percentile) and first quartile (25th percentile). Outlier treatment for numerical stability remains optional depending on potential model requirements for the subsequent steps.
+|      **[A.1]** <span style="color: #FF0000">Duration</span> variable (70 outliers detected)
+|      **[A.2]** <span style="color: #FF0000">Amount</span> variable (72 outliers detected)
+|      **[A.3]** <span style="color: #FF0000">Age</span> variable (23 outliers detected)
+|      **[A.4]** <span style="color: #FF0000">NumberExistingCredits</span> variable (6 outliers detected)
+|      **[A.5]** <span style="color: #FF0000">NumberPeopleMaintenance</span> variable (155 outliers detected)
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.3.1, warning=FALSE, message=FALSE, fig.width=15, fig.height=3}
+##################################
+# Loading dataset
+##################################
+DPA <- GermanCredit
+
+##################################
+# Listing all predictors
+##################################
+DPA.Predictors <- DQA.Predictors
+
+##################################
+# Listing all numeric predictors
+##################################
+DPA.Predictors.Numeric <- DQA.Predictors.Numeric
+
+##################################
+# Identifying outliers for the numeric predictors
+##################################
+OutlierCountList <- c()
+
+for (i in 1:ncol(DPA.Predictors.Numeric)) {
+  Outliers <- boxplot.stats(DPA.Predictors.Numeric[,i])$out
+  OutlierCount <- length(Outliers)
+  OutlierCountList <- append(OutlierCountList,OutlierCount)
+  OutlierIndices <- which(DPA.Predictors.Numeric[,i] %in% c(Outliers))
+  boxplot(DPA.Predictors.Numeric[,i], 
+          ylab = names(DPA.Predictors.Numeric)[i], 
+          main = names(DPA.Predictors.Numeric)[i],
+          horizontal=TRUE)
+  mtext(paste0(OutlierCount, " Outlier(s) Detected"))
+}
+
+OutlierCountSummary <- as.data.frame(cbind(names(DPA.Predictors.Numeric),(OutlierCountList)))
+names(OutlierCountSummary) <- c("NumericPredictors","OutlierCount")
+OutlierCountSummary$OutlierCount <- as.numeric(as.character(OutlierCountSummary$OutlierCount))
+NumericPredictorWithOutlierCount <- nrow(OutlierCountSummary[OutlierCountSummary$OutlierCount>0,])
+print(paste0(NumericPredictorWithOutlierCount, " numeric variable(s) were noted with outlier(s)." ))
+
+##################################
+# Gathering descriptive statistics
+##################################
+(DPA_Skimmed <- skim(DPA.Predictors.Numeric))
+
+```
+
+</details>
+
+### 1.3.2 Zero and Near-Zero Variance
+|
+| **[A]** Low variance noted for 34 variables from the previous data quality assessment using a lower threshold.
+|
+| **[B]** Low variance noted for 13 variables using a preprocessing summary from the <mark style="background-color: #CCECFF">**caret**</mark> package. The <span style="color: #0000FF">nearZeroVar</span> method using both the <span style="color: #0000FF">freqCut</span> and <span style="color: #0000FF">uniqueCut</span> criteria set at 95/5 and 10, respectively, were applied on the dataset.
+|      **[B.1]** <span style="color: #FF0000">ForeignWorker</span> variable (factor)
+|      **[B.2]** <span style="color: #FF0000">CreditHistory.NoCredit.AllPaid</span> variable (factor)
+|      **[B.3]** <span style="color: #FF0000">CreditHistory.ThisBank.AllPaid</span> variable (factor)
+|      **[B.4]** <span style="color: #FF0000">Purpose.DomesticAppliance</span> variable (factor)
+|      **[B.5]** <span style="color: #FF0000">Purpose.Repairs</span> variable (factor)
+|      **[B.6]** <span style="color: #FF0000">Purpose.Vacation</span> variable (factor)
+|      **[B.7]** <span style="color: #FF0000">Purpose.Retraining</span> variable (factor)
+|      **[B.8]** <span style="color: #FF0000">Purpose.Other</span> variable (factor)
+|      **[B.9]** <span style="color: #FF0000">SavingsAccountBonds.gt.1000</span> variable (factor)
+|      **[B.10]** <span style="color: #FF0000">Personal.Female.Single</span> variable (factor)
+|      **[B.11]** <span style="color: #FF0000">OtherDebtorsGuarantors.CoApplicant</span> variable (factor)
+|      **[B.12]** <span style="color: #FF0000">OtherInstallmentPlans.Stores</span> variable (factor)
+|      **[B.13]** <span style="color: #FF0000">Job.UnemployedUnskilled</span> variable (factor)
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.3.2, warning=FALSE, message=FALSE}
+##################################
+# Reusing dataset
+##################################
+##################################
+# Identifying and converting numeric variables
+# which should have been factor variables
+##################################
+DQA.Numeric <- DQA[,sapply(DQA, is.numeric)]
+
+DQA.Numeric.Max <- c()
+
+for (i in 1:ncol(DQA.Numeric)){
+  DQA.Numeric.Max.i <- max(DQA.Numeric[,i])
+  DQA.Numeric.Max <- append(DQA.Numeric.Max,DQA.Numeric.Max.i)
+}
+
+DQA.Numeric.Max.Summary <- as.data.frame(cbind(names(DQA.Numeric),DQA.Numeric.Max)) 
+names(DQA.Numeric.Max.Summary) <- c("Numeric.Predictors","Max")
+DQA.Numeric.Max.Summary$Max <- as.numeric(as.character(DQA.Numeric.Max.Summary$Max))
+
+DQA.Numeric.To.Factor <- DQA.Numeric.Max.Summary[DQA.Numeric.Max.Summary$Max<2,]
+DQA.Numeric.To.Factor.Names <- as.vector(DQA.Numeric.To.Factor$Numeric.Predictors)
+
+DQA[DQA.Numeric.To.Factor.Names]<-lapply(DQA[DQA.Numeric.To.Factor.Names],factor)
+
+DPA <- DQA
+
+# Gathering descriptive statistics
+##################################
+(DPA_Skimmed <- skim(DQA))
+
+##################################
+# Identifying columns with low variance
+###################################
+DPA_LowVariance <- nearZeroVar(DPA,
+                               freqCut = 95/5,
+                               uniqueCut = 10,
+                               saveMetrics= TRUE)
+(DPA_LowVariance[DPA_LowVariance$nzv,])
+
+if ((nrow(DPA_LowVariance[DPA_LowVariance$nzv,]))==0){
+  
+  print("No low variance predictors noted.")
+  
+} else {
+
+  print(paste0("Low variance observed for ",
+               (nrow(DPA_LowVariance[DPA_LowVariance$nzv,])),
+               " numeric variable(s) with First.Second.Mode.Ratio>4 and Unique.Count.Ratio<0.10."))
+  
+  DPA_LowVarianceForRemoval <- (nrow(DPA_LowVariance[DPA_LowVariance$nzv,]))
+  
+  print(paste0("Low variance can be resolved by removing ",
+               (nrow(DPA_LowVariance[DPA_LowVariance$nzv,])),
+               " numeric variable(s)."))
+  
+  for (j in 1:DPA_LowVarianceForRemoval) {
+  DPA_LowVarianceRemovedVariable <- rownames(DPA_LowVariance[DPA_LowVariance$nzv,])[j]
+  print(paste0("Variable ",
+               j,
+               " for removal: ",
+               DPA_LowVarianceRemovedVariable))
+  }
+  
+  DPA %>%
+  skim() %>%
+  dplyr::filter(skim_variable %in% rownames(DPA_LowVariance[DPA_LowVariance$nzv,]))
+
+  ##################################
+  # Filtering out columns with low variance
+  #################################
+  DPA_ExcludedLowVariance <- DPA[,!names(DPA) %in% rownames(DPA_LowVariance[DPA_LowVariance$nzv,])]
+  
+  PMA <- DPA_ExcludedLowVariance
+  
+  ##################################
+  # Gathering descriptive statistics
+  ##################################
+  (DPA_ExcludedLowVariance_Skimmed <- skim(DPA_ExcludedLowVariance))
+}
+
+```
+
+</details>
+
+### 1.3.3 Collinearity
+|
+| **[A]** No high correlation noted for any variable pair confirmed using the preprocessing summaries from the <mark style="background-color: #CCECFF">**caret**</mark> and <mark style="background-color: #CCECFF">**lares**</mark> packages.
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.3.3, warning=FALSE, message=FALSE}
+##################################
+# Reusing dataset
+##################################
+DQA.Numeric_ExcludedLowVariance <- DPA_ExcludedLowVariance[,sapply(DPA_ExcludedLowVariance, is.numeric)]
+DPA.Predictors.Numeric <- DQA.Numeric_ExcludedLowVariance
+
+##################################
+# Visualizing pairwise correlation between predictors
+##################################
+DPA_CorrelationTest <- cor.mtest(DPA.Predictors.Numeric,
+                       method = "pearson",
+                       conf.level = .95)
+
+corrplot(cor(DPA.Predictors.Numeric,
+             method = "pearson",
+             use="pairwise.complete.obs"), 
+         method = "circle",
+         type = "upper", 
+         order = "original", 
+         tl.col = "black", 
+         tl.cex = 0.75,
+         tl.srt = 90, 
+         sig.level = 0.05, 
+         p.mat = DPA_CorrelationTest$p,
+         insig = "blank")
+
+
+
+##################################
+# Identifying the highly correlated variables
+##################################
+DPA_Correlation <-  cor(DPA.Predictors.Numeric, 
+                        method = "pearson",
+                        use="pairwise.complete.obs")
+(DPA_HighlyCorrelatedCount <- sum(abs(DPA_Correlation[upper.tri(DPA_Correlation)]) > 0.95))
+
+if (DPA_HighlyCorrelatedCount == 0) {
+  print("No highly correlated predictors noted.")
+} else {
+  print(paste0("High correlation observed for ",
+               (DPA_HighlyCorrelatedCount),
+               " pairs of numeric variable(s) with Correlation.Coefficient>0.95."))
+  
+  (DPA_HighlyCorrelatedPairs <- corr_cross(DPA.Predictors.Numeric,
+  max_pvalue = 0.05, 
+  top = DPA_HighlyCorrelatedCount,
+  rm.na = TRUE,
+  grid = FALSE
+))
+  
+}
+
+
+if (DPA_HighlyCorrelatedCount > 0) {
+  DPA_HighlyCorrelated <- findCorrelation(DPA_Correlation, cutoff = 0.95)
+  
+  (DPA_HighlyCorrelatedForRemoval <- length(DPA_HighlyCorrelated))
+  
+  print(paste0("High correlation can be resolved by removing ",
+               (DPA_HighlyCorrelatedForRemoval),
+               " numeric variable(s)."))
+  
+  for (j in 1:DPA_HighlyCorrelatedForRemoval) {
+  DPA_HighlyCorrelatedRemovedVariable <- colnames(DPA.Predictors.Numeric)[DPA_HighlyCorrelated[j]]
+  print(paste0("Variable ",
+               j,
+               " for removal: ",
+               DPA_HighlyCorrelatedRemovedVariable))
+  }
+  
+  ##################################
+  # Filtering out columns with high correlation
+  #################################
+  DPA_ExcludedHighCorrelation <- DPA[,-DPA_HighlyCorrelated]
+  
+  ##################################
+  # Gathering descriptive statistics
+  ##################################
+  (DPA_ExcludedHighCorrelation_Skimmed <- skim(DPA_ExcludedHighCorrelation))
+
+}
+
+```
+
+</details>
+
+### 1.3.4 Linear Dependencies
+|
+| **[A]** Linear dependencies noted for 4 subsets of variables using the preprocessing summary from the <mark style="background-color: #CCECFF">**caret**</mark> package applying the <span style="color: #0000FF">findLinearCombos</span> method which utilizes the QR decomposition of a matrix to enumerate sets of linear combinations (if they exist). The following variables were recommended to be removed in order to resolve the linear dependency issue:
+|      **[A.1]** <span style="color: #FF0000">EmploymentDuration.Unemployed</span> variable (factor)
+|      **[A.2]** <span style="color: #FF0000">Personal.Male.Married.Widowed</span> variable (factor)
+|      **[A.3]** <span style="color: #FF0000">Property.Unknown</span> variable (factor)
+|      **[A.4]** <span style="color: #FF0000">Housing.ForFree</span> variable (factor)
+|
+| **[B]** There were 4 variables which consistently appeared across the 4 subsets. Among them, the  <span style="color: #FF0000">CheckingAccountStatus.lt.0</span> variable was removed.
+|      **[B.1]** <span style="color: #FF0000">CheckingAccountStatus.lt.0</span> variable (factor)
+|      **[B.2]** <span style="color: #FF0000">CheckingAccountStatus.0.to.200</span> variable (factor)
+|      **[B.3]** <span style="color: #FF0000">CheckingAccountStatus.gt.200</span> variable (factor)
+|      **[B.4]** <span style="color: #FF0000">CheckingAccountStatus.none</span> variable (factor)
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.3.4, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+DPA <- GermanCredit
+DPA_ExcludedLowVariance <- DPA[,!names(DPA) %in% rownames(DPA_LowVariance[DPA_LowVariance$nzv,])]
+
+##################################
+# Listing all predictors
+##################################
+DPA.Predictors <- DPA_ExcludedLowVariance[,!names(DPA_ExcludedLowVariance) %in% c("Class")]
+
+##################################
+# Listing all numeric predictors
+##################################
+DPA.Predictors.Numeric <- DPA.Predictors[,sapply(DPA.Predictors, is.numeric)]
+
+##################################
+# Finding linear dependencies
+##################################
+DPA_LinearlyDependent <- findLinearCombos(DPA.Predictors.Numeric)
+
+##################################
+# Identifying the linearly dependent variables
+##################################
+DPA_LinearlyDependent <- findLinearCombos(DPA.Predictors.Numeric)
+
+(DPA_LinearlyDependentCount <- length(DPA_LinearlyDependent$linearCombos))
+
+if (DPA_LinearlyDependentCount == 0) {
+  print("No linearly dependent predictors noted.")
+} else {
+  print(paste0("Linear dependency observed for ",
+               (DPA_LinearlyDependentCount),
+               " subset(s) of numeric variable(s)."))
+  
+  for (i in 1:DPA_LinearlyDependentCount) {
+    DPA_LinearlyDependentSubset <- colnames(DPA.Predictors.Numeric)[DPA_LinearlyDependent$linearCombos[[i]]]
+    print(paste0("Linear dependent variable(s) for subset ",
+                 i,
+                 " include: ",
+                 DPA_LinearlyDependentSubset))
+  }
+  
+}
+
+##################################
+# Identifying the linearly dependent variables for removal
+##################################
+
+if (DPA_LinearlyDependentCount > 0) {
+  DPA_LinearlyDependent <- findLinearCombos(DPA.Predictors.Numeric)
+  
+  DPA_LinearlyDependentForRemoval <- length(DPA_LinearlyDependent$remove)
+  
+  print(paste0("Linear dependency can be resolved by removing ",
+               (DPA_LinearlyDependentForRemoval),
+               " numeric variable(s)."))
+  
+  for (j in 1:DPA_LinearlyDependentForRemoval) {
+  DPA_LinearlyDependentRemovedVariable <- colnames(DPA.Predictors.Numeric)[DPA_LinearlyDependent$remove[j]]
+  print(paste0("Variable ",
+               j,
+               " for removal: ",
+               DPA_LinearlyDependentRemovedVariable))
+  }
+  
+  ##################################
+  # Filtering out columns with linear dependency
+  #################################
+  DPA_ExcludedLinearlyDependent <- DPA.Predictors.Numeric[,-DPA_LinearlyDependent$remove]
+  
+  ##################################
+  # Gathering descriptive statistics
+  ##################################
+  (DPA_ExcludedLinearlyDependent_Skimmed <- skim(DPA_ExcludedLinearlyDependent))
+
+}
+
+```
+
+</details>
+
+### 1.3.5 Pre-Processed Dataset
+|
+| **[A]** 1000 rows (observations)
+|
+| **[B]** 44 columns (variables)
+|      **[B.1]** 1/44 response = <span style="color: #FF0000">Class</span> variable (factor)
+|             **[B.1.1]** Levels = <span style="color: #FF0000">Class=Bad</span> < <span style="color: #FF0000">Class=Good</span>
+|      **[B.2]** 43/44 predictors = All remaining variables (36/43 factor + 7/43 numeric)
+| 
+| **[C]** Pre-processing actions applied:
+|      **[C.1]** Centering, scaling and shape transformation applied to improve data quality
+|      **[C.2]** No outlier treatment applied since the high values noted were contextually valid and sensible 
+|      **[C.3]** 13 predictors removed due to zero or near-zero variance 
+|      **[C.4]** No predictors removed due to high correlation
+|      **[C.5]** 3 predictors removed due to linear dependencies
+| 
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.3.5, warning=FALSE, message=FALSE}
+##################################
+# Creating the pre-modelling dataset
+#################################
+PMA_ExcludedLowVariance <- PMA
+
+##################################
+# Filtering out columns with linear dependencies
+# from the dataset with low-variance columns already filtered
+# to create the pre-modelling dataset
+#################################
+PMA_ExcludedLowVariance$CheckingAccountStatus.lt.0 <- NULL
+PMA_ExcludedLowVariance$EmploymentDuration.Unemployed <- NULL
+PMA_ExcludedLowVariance$Personal.Male.Married.Widowed <- NULL
+PMA_ExcludedLowVariance$Property.Unknown <- NULL
+PMA_ExcludedLowVariance$Housing.ForFree <- NULL
+
+PMA_ExcludedLowVariance_ExcludedLinearlyDependent <- PMA_ExcludedLowVariance
+
+PMA_PreModelling <- PMA_ExcludedLowVariance_ExcludedLinearlyDependent
+
+##################################
+# Gathering descriptive statistics
+##################################
+(PMA_PreModelling_Skimmed <- skim(PMA_PreModelling))
+
+```
+
+</details>
+
+##  1.4 Data Exploration
+|
+| **[A]** Variables which demonstrated relatively better differentiation between the <span style="color: #FF0000">Bad</span>  and <span style="color: #FF0000">Good</span>  levels of the response variable <span style="color: #FF0000">Class</span> include:
+|      **[A.1]** <span style="color: #FF0000">Duration</span> variable (numeric)
+|      **[A.2]** <span style="color: #FF0000">CheckingAccountStatus.none</span> variable (factor)
+|      **[A.3]** <span style="color: #FF0000">CreditHistory.Critical</span> variable (factor)
+|      **[A.4]** <span style="color: #FF0000">Purpose.UsedCar</span> variable (factor)
+|      **[A.5]** <span style="color: #FF0000">SavingsAccountsBonds.lt.100</span> variable (factor)
+|      **[A.6]** <span style="color: #FF0000">SavingsAccountsBonds.500.to.1000</span> variable (factor)
+|      **[A.7]** <span style="color: #FF0000">SavingsAccountsBonds.Unknown</span> variable (factor)
+|      **[A.8]** <span style="color: #FF0000">EmploymentDuration.4to7</span> variable (factor)
+|      **[A.9]** <span style="color: #FF0000">Personal.Male.Divorced.Separated</span> variable (factor)
+|      **[A.10]** <span style="color: #FF0000">OtherDebtorsGuarantors.Guarantor</span> variable (factor)
+|      **[A.11]** <span style="color: #FF0000">Property.RealEstate</span> variable (factor)
+|      **[A.12]** <span style="color: #FF0000">OtherInstallmentPlans.Bank</span> variable (factor)
+|      **[A.13]** <span style="color: #FF0000">OtherInstallmentPlans.None</span> variable (factor)
+|      **[A.14]** <span style="color: #FF0000">Housing.Rent</span> variable (factor)
+|      **[A.15]** <span style="color: #FF0000">Housing.Own</span> variable (factor)
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.4, warning=FALSE, message=FALSE}
+##################################
+# Loading dataset
+##################################
+EDA <- PMA_PreModelling
+
+##################################
+# Listing all predictors
+##################################
+EDA.Predictors <- EDA[,!names(EDA) %in% c("Class")]
+
+##################################
+# Listing all numeric predictors
+##################################
+EDA.Predictors.Numeric <- EDA.Predictors[,sapply(EDA.Predictors, is.numeric)]
+ncol(EDA.Predictors.Numeric)
+names(EDA.Predictors.Numeric)
+
+##################################
+# Converting response variable data type to factor
+##################################
+EDA$Class <- as.factor(EDA$Class)
+length(levels(EDA$Class))
+
+##################################
+# Formulating the box plots
+##################################
+featurePlot(x = EDA.Predictors.Numeric, 
+            y = EDA$Class,
+            plot = "box",
+            scales = list(x = list(relation="free", rot = 90), 
+                          y = list(relation="free")),
+            adjust = 1.5, 
+            pch = "|", 
+            layout = c(3, 3))
+
+##################################
+# Formulating the density plots
+##################################
+featurePlot(x = EDA.Predictors.Numeric, 
+            y = EDA$Class,
+            plot = "density",
+            scales = list(x = list(relation="free", rot = 90), 
+                          y = list(relation="free")),
+            adjust = 1.5, 
+            pch = "|", 
+            layout = c(3, 3),
+            auto.key = list(columns = (length(levels(EDA$Class)))))
+
+##################################
+# Listing all factor predictors
+##################################
+EDA.Predictors.Factor <- EDA.Predictors[,sapply(EDA.Predictors, is.factor)]
+ncol(EDA.Predictors.Factor)
+names(EDA.Predictors.Factor)
+
+##################################
+# Formulating the proportion tables
+##################################
+Prop_Label <- names(EDA.Predictors.Factor)[1]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_1 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[2]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_2 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[3]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_3 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[4]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_4 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[5]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_5 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[6]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_6 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[7]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_7 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[8]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_8 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[9]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_9 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[10]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_10 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[11]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_11 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[12]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_12 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[13]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_13 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[14]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_14 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[15]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_15 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[16]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_16 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[17]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_17 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[18]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_18 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[19]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_19 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[20]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_20 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[21]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_21 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[22]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_22 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[23]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_23 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[24]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_24 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[25]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_25 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[26]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_26 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+
+Prop_Label <- names(EDA.Predictors.Factor)[27]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_27 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[28]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_28 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[29]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_29 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[30]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_30 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[31]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_31 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[32]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_32 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[33]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_33 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[34]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_34 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[35]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_35 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+Prop_Label <- names(EDA.Predictors.Factor)[36]
+PropTable_Label <- paste0(Prop_Label,"_PropTable")
+PropTable_Data <- EDA[,c("Class",Prop_Label)]
+PropTable_Summary <- (assign(PropTable_Label,as.data.frame(prop.table(table(PropTable_Data), 2))))
+PropTable_Summary$Variable <- rep(Prop_Label,nrow(PropTable_Summary))
+PropTable_Summary$Category <- PropTable_Summary[,2]
+
+PropTable_BarChart_36 <- barchart(Freq ~ Category | Variable,
+         data=PropTable_Summary,
+         groups = Class,
+         stack=TRUE,
+         ylab = "Proportion",
+         auto.key = list(adj = 1))
+
+grid.arrange(PropTable_BarChart_1,
+             PropTable_BarChart_2, 
+             PropTable_BarChart_3, 
+             PropTable_BarChart_4, 
+             PropTable_BarChart_5, 
+             PropTable_BarChart_6, 
+             PropTable_BarChart_7, 
+             PropTable_BarChart_8, 
+             PropTable_BarChart_9, 
+             ncol = 3)
+
+grid.arrange(PropTable_BarChart_10, 
+             PropTable_BarChart_11, 
+             PropTable_BarChart_12, 
+             PropTable_BarChart_13, 
+             PropTable_BarChart_14, 
+             PropTable_BarChart_15, 
+             PropTable_BarChart_16, 
+             PropTable_BarChart_17, 
+             PropTable_BarChart_18, 
+             ncol = 3)
+
+grid.arrange(PropTable_BarChart_19, 
+             PropTable_BarChart_20, 
+             PropTable_BarChart_21, 
+             PropTable_BarChart_22, 
+             PropTable_BarChart_23, 
+             PropTable_BarChart_24, 
+             PropTable_BarChart_25, 
+             PropTable_BarChart_26, 
+             PropTable_BarChart_27,
+             ncol = 3)
+
+grid.arrange(PropTable_BarChart_28, 
+             PropTable_BarChart_29, 
+             PropTable_BarChart_30, 
+             PropTable_BarChart_31, 
+             PropTable_BarChart_32, 
+             PropTable_BarChart_33, 
+             PropTable_BarChart_34, 
+             PropTable_BarChart_35, 
+             PropTable_BarChart_36, 
+             ncol = 3)
+
+```
+
+</details>
+
+##  1.5 Hyperparameter Tuning and Internal Model Validation
+|
+| **[A]** This exercise involves a classification modelling problem given a dichotomous response. The decision tree model structure was used to illustrate the different resampling procedures for hyperparameter tuning and internal model validation. The tree-based algorithm applied was the <span style="color: #0000FF">Recursive Partitioning and Regression Trees (RPART)</span> as implemented through the <mark style="background-color: #CCECFF">**rpart**</mark> package in R. The RPART utilizes a single hyperparameter termed as the <span style="color: #0000FF">complexity parameter</span> which is the value of the minimum improvement that a split in a node must add to the tree. The algorithm does not include a particular split if it doesn’t yield at least as much benefit as the value of the complexity parameter defined. The default value for this hyperparameter is equal to 0.010. For this exercise, five values of the complexity parameter were identified prior to model development.
+|      **[A.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 (More complex decision tree structure)
+|      **[A.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005
+|      **[A.3]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010
+|      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015
+|      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 (Less complex decision tree structure)
+|
+| Model development and validation strategy:
+|
+| **[A]** The dataset was randomly split into 80% train set (800 observations) and 20% test set (200 observations).
+|
+| **[B]** Five models corresponding to the five hyperparameter values were developed and evaluated using the train set to determine their apparent performance. The same set of models were externally validated on the test set.
+|
+| **[C]** The internal validation performances of these models were obtained using the procedures described as follows:  
+|      **[C.1]** <span style="color: #FF0000">K-Fold Cross Validation</span> using K=5
+|      **[C.2]** <span style="color: #FF0000">Repeated K-Fold Cross Validation</span> using K=5, Repeats=10
+|      **[C.3]** <span style="color: #FF0000">Leave-One-Out Cross Validation</span> using N=1000
+|      **[C.4]** <span style="color: #FF0000">Leave-Group-Out Cross Validation</span> using Iterations=500
+|      **[C.5]** <span style="color: #FF0000">Bootstrap Validation</span> using Iterations=500
+|      **[C.6]** <span style="color: #FF0000">Bootstrap 0.632 Validation</span> using Iterations=500
+|      **[C.7]** <span style="color: #FF0000">Bootstrap with Optimism-Estimation Validation</span> using Iterations=500
+|
+| **[D]** Model performance will be evaluated using the <span style="color: #FF0000">Accuracy</span> metric which refers to the proportion of correct model classifications with respect to the total number of observations.
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5, warning=FALSE, message=FALSE}
+##################################
+# Creating the pre-modelling dataset
+# into the train and test sets
+##################################
+set.seed(12345678)
+MA_Train_Index  <- createDataPartition(PMA_PreModelling$Class,p=0.8)[[1]]
+MA_Train        <- PMA_PreModelling[ MA_Train_Index, ]
+MA_Test         <- PMA_PreModelling[-MA_Train_Index, ]
+
+```
+
+</details>
+
+### 1.5.1 Apparent and External Validation - Split-Sample Holdout Validation (AV | EV_SSHV)
+|
+| [Split-Sample Holdout Validation](http://appliedpredictivemodeling.com/) involves dividing the data set into the training and testing data sets. The data sample is shuffled so that samples get mixed and lead to an accurate training data set. The model is typically trained with a large number of samples as compared to the samples available in the testing data set. The next step is to develop the model with the training data set and once it is trained, the model is evaluated with the testing data set. While the training data set is kept to be more than the testing data set in terms of size, it could be possible that the training data set is not representative of the whole data sample. The testing data set could also potentially contain essential characteristics of the whole data that can get missed out.
+|
+| **[A]** Apparent model performance on train set :
+|      **[A.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 84.00% Accuracy
+|      **[A.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 83.38% Accuracy (Best)
+|      **[A.3]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 80.25% Accuracy
+|      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 77.50% Accuracy
+|      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 77.00% Accuracy
+|
+| **[B]** Externally-validated model performance on test set :
+|      **[B.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 73.00% Accuracy
+|      **[B.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 74.50% Accuracy (Best)
+|      **[B.3]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 74.00% Accuracy
+|      **[B.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 73.00% Accuracy
+|      **[B.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 72.50% Accuracy 
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.1, warning=FALSE, message=FALSE}
+##################################
+# Creating the modelling dataset
+##################################
+MA_Train.Evaluated <- MA_Train
+MA_Test.Evaluated <- MA_Test
+
+##################################
+# Formulating the RPART model
+# using a complexity parameter setting
+# equal to 0.001
+##################################
+rpartFit.Apparent.CP.001 = rpart(Class ~ ., 
+                          data = MA_Train,
+                          control = rpart.control(cp = 0.001))
+
+printcp(rpartFit.Apparent.CP.001)
+
+##################################
+# Pruning the model
+##################################
+rpartFit.Apparent.CP.001.Pruned <- prune(rpartFit.Apparent.CP.001, cp = 0.001)
+
+rpartFit.Apparent.CP.001.Pruned.Summary <- summary(rpartFit.Apparent.CP.001.Pruned)
+
+##################################
+# Identifying the most predictive variables
+##################################
+rpartFit.Apparent.CP.001.Pruned.Summary$variable.importance
+
+##################################
+# Plotting the RPART model structure
+##################################
+fancyRpartPlot(rpartFit.Apparent.CP.001.Pruned, caption = NULL)
+
+##################################
+# Evaluating the RPART model
+# on the train set
+##################################
+MA_Train.Evaluated$PredClass.CP.001 <- predict(rpartFit.Apparent.CP.001.Pruned, 
+                                                 newdata = MA_Train, 
+                                                 type = "class")
+MA_Train.Evaluated$PredCorrect.CP.001 <- ifelse(MA_Train.Evaluated$Class==MA_Train.Evaluated$PredClass.CP.001,1,0)
+
+##################################
+# Computing for the 
+# apparent model performance
+##################################
+(Train.CP.001 <- mean(MA_Train.Evaluated$PredCorrect.CP.001))
+
+##################################
+# Evaluating the RPART model
+# on the test set
+##################################
+MA_Test.Evaluated$PredClass.CP.001 <- predict(rpartFit.Apparent.CP.001.Pruned, 
+                                                       newdata = MA_Test, 
+                                                       type = "class")
+MA_Test.Evaluated$PredCorrect.CP.001 <- ifelse(MA_Test.Evaluated$Class==MA_Test.Evaluated$PredClass.CP.001,1,0)
+
+##################################
+# Computing for the 
+# external validation model performance
+##################################
+(Test.CP.001 <- mean(MA_Test.Evaluated$PredCorrect.CP.001))
+
+##################################
+# Formulating the RPART model
+# using a complexity parameter setting
+# equal to 0.005
+#################################
+rpartFit.Apparent.CP.005 = rpart(Class ~ ., 
+                                 data = MA_Train,
+                                 control = rpart.control(cp = 0.005))
+
+printcp(rpartFit.Apparent.CP.005)
+
+##################################
+# Pruning the model
+##################################
+rpartFit.Apparent.CP.005.Pruned <- prune(rpartFit.Apparent.CP.005, cp = 0.005)
+
+rpartFit.Apparent.CP.005.Pruned.Summary <- summary(rpartFit.Apparent.CP.005.Pruned)
+
+##################################
+# Identifying the most predictive variables
+##################################
+rpartFit.Apparent.CP.005.Pruned.Summary$variable.importance
+
+##################################
+# Plotting the RPART model structure
+##################################
+fancyRpartPlot(rpartFit.Apparent.CP.005.Pruned, caption = NULL)
+
+##################################
+# Evaluating the RPART model
+# on the train set
+##################################
+MA_Train.Evaluated$PredClass.CP.005 <- predict(rpartFit.Apparent.CP.005.Pruned, 
+                                                        newdata = MA_Train, 
+                                                        type = "class")
+MA_Train.Evaluated$PredCorrect.CP.005 <- ifelse(MA_Train.Evaluated$Class==MA_Train.Evaluated$PredClass.CP.005,1,0)
+
+##################################
+# Computing for the 
+# apparent model performance
+##################################
+(Train.CP.005 <- mean(MA_Train.Evaluated$PredCorrect.CP.005))
+
+##################################
+# Evaluating the RPART model
+# on the test set
+##################################
+MA_Test.Evaluated$PredClass.CP.005 <- predict(rpartFit.Apparent.CP.005.Pruned, 
+                                                       newdata = MA_Test, 
+                                                       type = "class")
+MA_Test.Evaluated$PredCorrect.CP.005 <- ifelse(MA_Test.Evaluated$Class==MA_Test.Evaluated$PredClass.CP.005,1,0)
+
+##################################
+# Computing for the 
+# external validation model performance
+##################################
+(Test.CP.005 <- mean(MA_Test.Evaluated$PredCorrect.CP.005))
+
+##################################
+# Formulating the RPART model
+# using a complexity parameter setting
+# equal to 0.010
+#################################
+rpartFit.Apparent.CP.010 = rpart(Class ~ ., 
+                                 data = MA_Train,
+                                 control = rpart.control(cp = 0.010))
+
+printcp(rpartFit.Apparent.CP.010)
+
+##################################
+# Pruning the model
+##################################
+rpartFit.Apparent.CP.010.Pruned <- prune(rpartFit.Apparent.CP.010, cp = 0.010)
+
+rpartFit.Apparent.CP.010.Pruned.Summary <- summary(rpartFit.Apparent.CP.010.Pruned)
+
+##################################
+# Identifying the most predictive variables
+##################################
+rpartFit.Apparent.CP.010.Pruned.Summary$variable.importance
+
+##################################
+# Plotting the RPART model structure
+##################################
+fancyRpartPlot(rpartFit.Apparent.CP.010.Pruned, caption = NULL)
+
+##################################
+# Evaluating the RPART model
+# on the train set
+##################################
+MA_Train.Evaluated$PredClass.CP.010 <- predict(rpartFit.Apparent.CP.010.Pruned, 
+                                                        newdata = MA_Train, 
+                                                        type = "class")
+MA_Train.Evaluated$PredCorrect.CP.010 <- ifelse(MA_Train.Evaluated$Class==MA_Train.Evaluated$PredClass.CP.010,1,0)
+
+##################################
+# Computing for the 
+# apparent model performance
+##################################
+(Train.CP.010 <- mean(MA_Train.Evaluated$PredCorrect.CP.010))
+
+##################################
+# Evaluating the RPART model
+# on the test set
+##################################
+MA_Test.Evaluated$PredClass.CP.010 <- predict(rpartFit.Apparent.CP.010.Pruned, 
+                                                       newdata = MA_Test, 
+                                                       type = "class")
+MA_Test.Evaluated$PredCorrect.CP.010 <- ifelse(MA_Test.Evaluated$Class==MA_Test.Evaluated$PredClass.CP.010,1,0)
+
+##################################
+# Computing for the 
+# external validation model performance
+##################################
+(Test.CP.010 <- mean(MA_Test.Evaluated$PredCorrect.CP.010))
+
+##################################
+# Formulating the RPART model
+# using a complexity parameter setting
+# equal to 0.015
+#################################
+rpartFit.Apparent.CP.015 = rpart(Class ~ ., 
+                                 data = MA_Train,
+                                 control = rpart.control(cp = 0.015))
+
+printcp(rpartFit.Apparent.CP.015)
+
+##################################
+# Pruning the model
+##################################
+rpartFit.Apparent.CP.015.Pruned <- prune(rpartFit.Apparent.CP.015, cp = 0.015)
+
+rpartFit.Apparent.CP.015.Pruned.Summary <- summary(rpartFit.Apparent.CP.015.Pruned)
+
+##################################
+# Identifying the most predictive variables
+##################################
+rpartFit.Apparent.CP.015.Pruned.Summary$variable.importance
+
+##################################
+# Plotting the RPART model structure
+##################################
+fancyRpartPlot(rpartFit.Apparent.CP.015.Pruned, caption = NULL)
+
+##################################
+# Evaluating the RPART model
+# on the train set
+##################################
+MA_Train.Evaluated$PredClass.CP.015 <- predict(rpartFit.Apparent.CP.015.Pruned, 
+                                                        newdata = MA_Train, 
+                                                        type = "class")
+MA_Train.Evaluated$PredCorrect.CP.015 <- ifelse(MA_Train.Evaluated$Class==MA_Train.Evaluated$PredClass.CP.015,1,0)
+
+##################################
+# Computing for the 
+# apparent model performance
+##################################
+(Train.CP.015 <- mean(MA_Train.Evaluated$PredCorrect.CP.015))
+
+##################################
+# Evaluating the RPART model
+# on the test set
+##################################
+MA_Test.Evaluated$PredClass.CP.015 <- predict(rpartFit.Apparent.CP.015.Pruned, 
+                                                       newdata = MA_Test, 
+                                                       type = "class")
+MA_Test.Evaluated$PredCorrect.CP.015 <- ifelse(MA_Test.Evaluated$Class==MA_Test.Evaluated$PredClass.CP.015,1,0)
+
+##################################
+# Computing for the 
+# external validation model performance
+##################################
+(Test.CP.015 <- mean(MA_Test.Evaluated$PredCorrect.CP.015))
+
+##################################
+# Formulating the RPART model
+# using a complexity parameter setting
+# equal to 0.020
+#################################
+rpartFit.Apparent.CP.020 = rpart(Class ~ ., 
+                                 data = MA_Train,
+                                 control = rpart.control(cp = 0.020))
+
+printcp(rpartFit.Apparent.CP.020)
+
+##################################
+# Pruning the model
+##################################
+rpartFit.Apparent.CP.020.Pruned <- prune(rpartFit.Apparent.CP.020, cp = 0.020)
+
+rpartFit.Apparent.CP.020.Pruned.Summary <- summary(rpartFit.Apparent.CP.020.Pruned)
+
+##################################
+# Identifying the most predictive variables
+##################################
+rpartFit.Apparent.CP.020.Pruned.Summary$variable.importance
+
+##################################
+# Plotting the RPART model structure
+##################################
+fancyRpartPlot(rpartFit.Apparent.CP.020.Pruned, caption = NULL)
+
+##################################
+# Evaluating the RPART model
+# on the train set
+##################################
+MA_Train.Evaluated$PredClass.CP.020 <- predict(rpartFit.Apparent.CP.020.Pruned, 
+                                                        newdata = MA_Train, 
+                                                        type = "class")
+MA_Train.Evaluated$PredCorrect.CP.020 <- ifelse(MA_Train.Evaluated$Class==MA_Train.Evaluated$PredClass.CP.020,1,0)
+
+##################################
+# Computing for the 
+# apparent model performance
+##################################
+(Train.CP.020 <- mean(MA_Train.Evaluated$PredCorrect.CP.020))
+
+##################################
+# Evaluating the RPART model
+# on the test set
+##################################
+MA_Test.Evaluated$PredClass.CP.020 <- predict(rpartFit.Apparent.CP.020.Pruned, 
+                                                       newdata = MA_Test, 
+                                                       type = "class")
+MA_Test.Evaluated$PredCorrect.CP.020 <- ifelse(MA_Test.Evaluated$Class==MA_Test.Evaluated$PredClass.CP.020,1,0)
+
+##################################
+# Computing for the 
+# external validation model performance
+##################################
+(Test.CP.020 <- mean(MA_Test.Evaluated$PredCorrect.CP.020))
+
+################################################################################
+# Plotting the apparent and external validation model performance
+################################################################################
+Apparent <- c(Train.CP.001,Train.CP.005,Train.CP.010,Train.CP.015,Train.CP.020)
+Test <- c(Test.CP.001,Test.CP.005,Test.CP.010,Test.CP.015,Test.CP.020)
+Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
+
+Performance <- Apparent
+Validation <- c(rep("AV: Apparent",5))
+ApparentPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance))
+ApparentPerformance_Data$Performance <- as.numeric(as.character(ApparentPerformance_Data$Performance))
+ApparentPerformance_Data$Complexity_Parameter <- factor(ApparentPerformance_Data$Complexity_Parameter,
+                                                      levels=c("0.001","0.005","0.010","0.015","0.020"))
+str(ApparentPerformance_Data)
+ApparentPerformance_Data
+(ApparentPerformance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
+                                    data = ApparentPerformance_Data,
+                                    ylab = "Estimated Accuracy",
+                                    xlab = "Complexity Parameter",
+                                    auto.key = list(adj = 1),
+                                    ylim = seq(0.60, 0.85, 0.05),
+                                    panel = function(x, y) {
+                                      panel.grid(h=4, v=4)
+                                      panel.xyplot(x,
+                                                   y,
+                                                   type=c("p","l"),
+                                                   pch=16,
+                                                   col.symbol="blue",
+                                                   col.line="blue",
+                                                   cex=2)
+                                      }))
+
+
+Performance <- Test
+Validation <- c(rep("EV_SSHV: External - Split-Sample",5))
+TestPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance))
+TestPerformance_Data$Performance <- as.numeric(as.character(TestPerformance_Data$Performance))
+TestPerformance_Data$Complexity_Parameter <- factor(TestPerformance_Data$Complexity_Parameter,
+                                                    levels=c("0.001","0.005","0.010","0.015","0.020"))
+str(TestPerformance_Data)
+TestPerformance_Data
+(TestPerformance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
+                                    data = TestPerformance_Data,
+                                    ylab = "Estimated Accuracy",
+                                    xlab = "Complexity Parameter",
+                                    auto.key = list(adj = 1),
+                                    ylim = seq(0.60, 0.85, 0.05),
+                                    panel = function(x, y) {
+                                      panel.grid(h=4, v=4)
+                                      panel.xyplot(x, 
+                                                   y, 
+                                                   type=c("p","l"), 
+                                                   pch=16, 
+                                                   col.symbol="red",
+                                                   col.line="red",
+                                                   cex=2)
+                                    }))
+
+
+
+```
+
+</details>
+
+### 1.5.2 Internal Validation - K-Fold Cross-Validation (IV_KFCV)
+|
+| [K-Fold Cross-Validation](http://appliedpredictivemodeling.com/) involves dividing the training set after a random shuffle into a user-defined K number of smaller non-overlapping sets called folds. Each unique fold is assigned as the hold-out test data to assess the model trained from the data set collected from all the remaining K-1 folds. The evaluation score is retained but the model is discarded. The process is recursively performed resulting to a total of K fitted models and evaluated on the K hold-out test sets. All K-computed performance measures reported from the process are then averaged to represent the estimated performance of the model. This approach can be computationally expensive and may be highly dependent on how the data was randomly assigned to their respective folds, but does not waste too much data which is a major advantage in problems where the number of samples is very small.
+|
+| **[A]** Internally-validated model performance on train set :
+|      **[A.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 69.38% Accuracy
+|      **[A.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 69.50% Accuracy 
+|      **[A.3]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 70.50% Accuracy (Best)
+|      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 70.38% Accuracy
+|      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 69.25% Accuracy
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.2, warning=FALSE, message=FALSE}
+################################################################################
+# Applying k-fold cross validation
+################################################################################
+set.seed(12345678)
+grid <- expand.grid(cp=c(0.001,0.005,0.010,0.015,0.020))
+rpartFit.CV.5 <- train(Class ~ .,
+                         data = MA_Train,
+                         method = "rpart",
+                         tuneGrid = grid,
+                         trControl = trainControl(method = "cv", 
+                                                  number = 5,
+                                                  classProbs = TRUE))
+
+rpartFit.CV.5$results
+
+################################################################################
+# Plotting the internal model validation performance
+# Applying k-fold cross validation
+################################################################################
+CV.5 <- rpartFit.CV.5$results$Accuracy
+CV.5.UCL <- rpartFit.CV.5$results$Accuracy+2*rpartFit.CV.5$results$AccuracySD
+CV.5.LCL <- rpartFit.CV.5$results$Accuracy-2*rpartFit.CV.5$results$AccuracySD
+Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
+
+Performance <- CV.5
+Validation <- c(rep("IV_KFCV: Internal - K-Fold CV",5))
+CV.5Performance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,CV.5.UCL,CV.5.LCL))
+CV.5Performance_Data$Performance <- as.numeric(as.character(CV.5Performance_Data$Performance))
+CV.5Performance_Data$CV.5.UCL <- as.numeric(as.character(CV.5Performance_Data$CV.5.UCL))
+CV.5Performance_Data$CV.5.LCL <- as.numeric(as.character(CV.5Performance_Data$CV.5.LCL))
+CV.5Performance_Data$Complexity_Parameter <- factor(CV.5Performance_Data$Complexity_Parameter,
+                                                    levels=c("0.001","0.005","0.010","0.015","0.020"))
+str(CV.5Performance_Data)
+CV.5Performance_Data
+(CV.5Performance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
+                                    data = CV.5Performance_Data,
+                                    ylab = "Estimated Accuracy",
+                                    xlab = "Complexity Parameter",
+                                    auto.key = list(adj = 1),
+                                    ylim = seq(0.60, 0.85, 0.05),
+                                    panel = function(x, y) {
+                                      panel.grid(h=4, v=4)
+                                      panel.xyplot(x,
+                                                   y,
+                                                   type=c("p","l"),
+                                                   pch=16,
+                                                   col.symbol="black",
+                                                   col.line="black",
+                                                   cex=2)
+                                      panel.arrows(x0 = as.numeric(x), 
+                                                   x1 = as.numeric(x), 
+                                                   y0 = CV.5Performance_Data$CV.5.LCL, 
+                                                   y1 = CV.5Performance_Data$CV.5.UCL, 
+                                                   length = 0.10, angle = 90, code = 3, lend = 2)
+                                    }))
+
+```
+
+</details>
+
+### 1.5.3 Internal Validation - Repeated K-Fold Cross-Validation (IV_RKFCV)
+|
+| [Repeated K-Fold Cross-Validation](http://appliedpredictivemodeling.com/) improves on the potentially noisy estimate of model performance via K-Fold cross-validation. Each time the procedure is run, a different split of the dataset into K folds can be implemented, and in turn, the distribution of performance scores can be different, resulting in a different mean estimate of model performance. The amount of difference in the estimated performance from one run of K-Fold cross-validation to another is dependent upon the model that is being used and on the data set itself. One solution to reduce the noise in the estimated model performance is by simply repeating the cross-validation procedure multiple times using different random seeds and reporting the mean result across all folds from all runs. This will reduce the bias in the model’s estimated performance by generating a more accurate estimate of the true unknown underlying mean performance of the model on the data set.
+|
+| **[A]** Internally-validated model performance on train set :
+|      **[A.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 70.66% Accuracy
+|      **[A.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 70.94% Accuracy 
+|      **[A.3]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 72.01% Accuracy (Best)
+|      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 71.54% Accuracy
+|      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 71.24% Accuracy
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.3, warning=FALSE, message=FALSE}
+################################################################################
+# Applying repeated k-fold cross validation
+################################################################################
+set.seed(12345678)
+grid <- expand.grid(cp=c(0.001,0.005,0.010,0.015,0.020))
+
+rpartFit.RCV.10 <- train(Class ~ .,
+                        data = MA_Train,
+                        method = "rpart",
+                        tuneGrid = grid,
+                        trControl = trainControl(method = "repeatedcv", 
+                                                 repeats = 10,
+                                                 number = 5,
+                                                 classProbs = TRUE))
+
+rpartFit.RCV.10$results
+
+################################################################################
+# Plotting the internal model validation performance
+# Applying repeated k-fold cross validation
+################################################################################
+RCV.10 <- rpartFit.RCV.10$results$Accuracy
+RCV.10.UCL <- rpartFit.RCV.10$results$Accuracy+2*rpartFit.RCV.10$results$AccuracySD
+RCV.10.LCL <- rpartFit.RCV.10$results$Accuracy-2*rpartFit.RCV.10$results$AccuracySD
+Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
+
+Performance <- RCV.10
+Validation <- c(rep("IV_RKFCV: Internal - Repeated K-Fold CV",5))
+RCV.10Performance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,RCV.10.UCL,RCV.10.LCL))
+RCV.10Performance_Data$Performance <- as.numeric(as.character(RCV.10Performance_Data$Performance))
+RCV.10Performance_Data$RCV.10.UCL <- as.numeric(as.character(RCV.10Performance_Data$RCV.10.UCL))
+RCV.10Performance_Data$RCV.10.LCL <- as.numeric(as.character(RCV.10Performance_Data$RCV.10.LCL))
+RCV.10Performance_Data$Complexity_Parameter <- factor(RCV.10Performance_Data$Complexity_Parameter,
+                                                      levels=c("0.001","0.005","0.010","0.015","0.020"))
+str(RCV.10Performance_Data)
+RCV.10Performance_Data
+(RCV.10Performance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
+                                    data = RCV.10Performance_Data,
+                                    ylab = "Estimated Accuracy",
+                                    xlab = "Complexity Parameter",
+                                    auto.key = list(adj = 1),
+                                    ylim = seq(0.60, 0.85, 0.05),
+                                    panel = function(x, y) {
+                                      panel.grid(h=4, v=4)
+                                      panel.xyplot(x,
+                                                   y,
+                                                   type=c("p","l"),
+                                                   pch=16,
+                                                   col.symbol="black",
+                                                   col.line="black",
+                                                   cex=2)
+                                      panel.arrows(x0 = as.numeric(x), 
+                                                   x1 = as.numeric(x), 
+                                                   y0 = RCV.10Performance_Data$RCV.10.LCL, 
+                                                   y1 = RCV.10Performance_Data$RCV.10.UCL, 
+                                                   length = 0.10, angle = 90, code = 3, lend = 2)
+                                    }))
+```
+
+</details>
+
+### 1.5.4 Internal Validation - Leave-One-Out Cross Validation (IV_LOOCV)
+|
+| [Leave-One-Out Cross Validation](http://appliedpredictivemodeling.com/) is an extreme configuration of the K-Fold cross-validation where K is set to the number of examples in the data set. It requires one model to be created and evaluated for each sample in the training data set resulting to N models, driving a maximum computational cost. Each observation is considered as the validation set and the rest (N-1) observations are considered as the training set. Given the improved estimate of model performance, LOOCV is appropriate when an accurate estimate of model performance is critical. This particularly case when the data set is small which can lead to model over-fitting during training and biased estimates of model performance. Further, given that no sampling of the training data set is used, this estimation procedure is deterministic, unlike train-test splits and other K-Fold cross-validation confirmations that provide a stochastic estimate of model performance.
+|
+| **[A]** Internally-validated model performance on train set :
+|      **[A.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 65.88% Accuracy
+|      **[A.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 67.38% Accuracy (Best) 
+|      **[A.3]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 66.00% Accuracy
+|      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 61.88% Accuracy
+|      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 65.75% Accuracy
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.4, warning=FALSE, message=FALSE}
+################################################################################
+# Applying leave-one-out cross validation
+################################################################################
+set.seed(12345678)
+grid <- expand.grid(cp=c(0.001,0.005,0.010,0.015,0.020))
+
+rpartFit.LOOCV <- train(Class ~ .,
+                   data = MA_Train,
+                   method = "rpart",
+                   tuneGrid = grid,
+                   trControl = trainControl(method = "LOOCV",
+                                            classProbs = TRUE))
+
+rpartFit.LOOCV$results
+
+################################################################################
+# Plotting the internal model validation performance
+# Applying leave-one-out cross validation
+################################################################################
+LOOCV <- rpartFit.LOOCV$results$Accuracy
+Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
+
+Performance <- LOOCV
+Validation <- c(rep("IV_LOOCV: Internal - LOOCV",5))
+LOOCVPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance))
+LOOCVPerformance_Data$Performance <- as.numeric(as.character(LOOCVPerformance_Data$Performance))
+LOOCVPerformance_Data$Complexity_Parameter <- factor(LOOCVPerformance_Data$Complexity_Parameter,
+                                                     levels=c("0.001","0.005","0.010","0.015","0.020"))
+str(LOOCVPerformance_Data)
+LOOCVPerformance_Data
+(LOOCVPerformance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
+                                    data = LOOCVPerformance_Data,
+                                    ylab = "Estimated Accuracy",
+                                    xlab = "Complexity Parameter",
+                                    auto.key = list(adj = 1),
+                                    ylim = seq(0.60, 0.85, 0.05),
+                                    panel = function(x, y) {
+                                      panel.grid(h=4, v=4)
+                                      panel.xyplot(x,
+                                                   y,
+                                                   type=c("p","l"),
+                                                   pch=16,
+                                                   col.symbol="black",
+                                                   col.line="black",
+                                                   cex=2)
+                                    }))
+```
+
+</details>
+
+### 1.5.5 Internal Validation - Leave-Group-Out Cross Validation (IV_LGOCV)
+|
+| [Leave-Group-Out Cross Validation](http://appliedpredictivemodeling.com/) is also referred to as the Monte Carlo or shuffle-split cross-validation, which repeatedly creates multiple random splits of the data into training and test sets, given a defined train-test proportion and the number of iterations. The process involves fitting the model on the train data set in that iteration and calculating the accuracy of the fitted model on the test data set. Model performance is summarized by taking the average of all the test errors. The bias of the resampling technique decreases as the amount of data in the subset approaches that in the modelling set. While increasing the number of repetitions has the effect of decreasing the uncertainty of the performance estimates.
+|
+| **[A]** Internally-validated model performance on train set :
+|      **[A.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 70.18% Accuracy
+|      **[A.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 70.60% Accuracy 
+|      **[A.3]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 71.21% Accuracy
+|      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 71.23% Accuracy (Best)
+|      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 71.11% Accuracy
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.5, warning=FALSE, message=FALSE}
+################################################################################
+# Applying leave-group-out cross validation
+################################################################################
+set.seed(12345678)
+grid <- expand.grid(cp=c(0.001,0.005,0.010,0.015,0.020))
+
+rpartFit.LGOCV <- train(Class ~ .,
+                        data = MA_Train,
+                        method = "rpart",
+                        tuneGrid = grid,
+                        trControl = trainControl(method = "LGOCV",
+                                                 number = 500, 
+                                                 p = 0.70,
+                                                 classProbs = TRUE))
+
+rpartFit.LGOCV$results
+
+################################################################################
+# Plotting the internal model validation performance
+# Applying leave-group-out cross validation
+################################################################################
+LGOCV <- rpartFit.LGOCV$results$Accuracy
+LGOCV.UCL <- rpartFit.LGOCV$results$Accuracy+2*rpartFit.LGOCV$results$AccuracySD
+LGOCV.LCL <- rpartFit.LGOCV$results$Accuracy-2*rpartFit.LGOCV$results$AccuracySD
+Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
+
+Performance <- LGOCV
+Validation <- c(rep("IV_LGOCV: Internal - LGOCV",5))
+LGOCVPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,LGOCV.UCL,LGOCV.LCL))
+LGOCVPerformance_Data$Performance <- as.numeric(as.character(LGOCVPerformance_Data$Performance))
+LGOCVPerformance_Data$LGOCV.UCL <- as.numeric(as.character(LGOCVPerformance_Data$LGOCV.UCL))
+LGOCVPerformance_Data$LGOCV.LCL <- as.numeric(as.character(LGOCVPerformance_Data$LGOCV.LCL))
+LGOCVPerformance_Data$Complexity_Parameter <- factor(LGOCVPerformance_Data$Complexity_Parameter,
+                                                     levels=c("0.001","0.005","0.010","0.015","0.020"))
+str(LGOCVPerformance_Data)
+LGOCVPerformance_Data
+(LGOCVPerformance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
+                                    data = LGOCVPerformance_Data,
+                                    ylab = "Estimated Accuracy",
+                                    xlab = "Complexity Parameter",
+                                    auto.key = list(adj = 1),
+                                    ylim = seq(0.60, 0.85, 0.05),
+                                    panel = function(x, y) {
+                                      panel.grid(h=4, v=4)
+                                      panel.xyplot(x,
+                                                   y,
+                                                   type=c("p","l"),
+                                                   pch=16,
+                                                   col.symbol="black",
+                                                   col.line="black",
+                                                   cex=2)
+                                      panel.arrows(x0 = as.numeric(x), 
+                                                   x1 = as.numeric(x), 
+                                                   y0 = LGOCVPerformance_Data$LGOCV.LCL, 
+                                                   y1 = LGOCVPerformance_Data$LGOCV.UCL, 
+                                                   length = 0.10, angle = 90, code = 3, lend = 2)
+                                    }))
+
+```
+
+</details>
+
+### 1.5.6 Internal Validation - Bootstrap Validation (IV_BV)
+|
+| [Bootstrap Validation](http://appliedpredictivemodeling.com/) takes random samples with replacement from the training set equal to the number of observations in the data set, given a defined number of iterations. Since the sampling is with replacement, there is a very strong likelihood that some training set samples will be represented more than once. As a consequence of this, some training set data points will not be contained in the bootstrap sample. The model is trained on the bootstrap sample and those data points not in that sample, referred to as out-of-bag samples are the unique sets of instances that are not used for model fitting, are predicted as hold-outs. The model performance metric is calculated from each bootstrap sample with all results consolidated and averaged to estimate the overall performance of the model. 
+|
+| **[A]** Internally-validated model performance on train set :
+|      **[A.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 69.10% Accuracy
+|      **[A.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 69.75% Accuracy 
+|      **[A.3]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 70.53% Accuracy
+|      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 71.11% Accuracy
+|      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 71.24% Accuracy (Best)
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.6, warning=FALSE, message=FALSE}
+################################################################################
+# Applying bootstrap validation
+################################################################################
+set.seed(12345678)
+grid <- expand.grid(cp=c(0.001,0.005,0.010,0.015,0.020))
+
+rpartFit.Boot <- train(Class ~ .,
+                        data = MA_Train,
+                        method = "rpart",
+                        tuneGrid = grid,
+                        trControl = trainControl(method = "boot",
+                                                 number = 500,
+                                                 classProbs = TRUE))
+
+rpartFit.Boot$results
+
+################################################################################
+# Plotting the internal model validation performance
+# Applying bootstrap validation
+################################################################################
+Boot <- rpartFit.Boot$results$Accuracy
+Boot.UCL <- rpartFit.Boot$results$Accuracy+2*rpartFit.Boot$results$AccuracySD
+Boot.LCL <- rpartFit.Boot$results$Accuracy-2*rpartFit.Boot$results$AccuracySD
+Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
+
+Performance <- Boot
+Validation <- c(rep("IV_BV: Internal - Bootstrap",5))
+BootPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,Boot.UCL,Boot.LCL))
+BootPerformance_Data$Performance <- as.numeric(as.character(BootPerformance_Data$Performance))
+BootPerformance_Data$Boot.UCL <- as.numeric(as.character(BootPerformance_Data$Boot.UCL))
+BootPerformance_Data$Boot.LCL <- as.numeric(as.character(BootPerformance_Data$Boot.LCL))
+BootPerformance_Data$Complexity_Parameter <- factor(BootPerformance_Data$Complexity_Parameter,
+                                                    levels=c("0.001","0.005","0.010","0.015","0.020"))
+str(BootPerformance_Data)
+BootPerformance_Data
+(BootPerformance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
+                                    data = BootPerformance_Data,
+                                    ylab = "Estimated Accuracy",
+                                    xlab = "Complexity Parameter",
+                                    auto.key = list(adj = 1),
+                                    ylim = seq(0.60, 0.85, 0.05),
+                                    panel = function(x, y) {
+                                      panel.grid(h=4, v=4)
+                                      panel.xyplot(x,
+                                                   y,
+                                                   type=c("p","l"),
+                                                   pch=16,
+                                                   col.symbol="black",
+                                                   col.line="black",
+                                                   cex=2)
+                                      panel.arrows(x0 = as.numeric(x), 
+                                                   x1 = as.numeric(x), 
+                                                   y0 = BootPerformance_Data$Boot.LCL, 
+                                                   y1 = BootPerformance_Data$Boot.UCL, 
+                                                   length = 0.10, angle = 90, code = 3, lend = 2)
+                                      }))
+
+```
+
+</details>
+
+### 1.5.7 Internal Validation - Bootstrap 0.632 Validation (IV_B632V)
+|
+| [Bootstrap 0.632 Validation](https://www.tandfonline.com/doi/abs/10.1080/01621459.1983.10477973) is an improvement of the bootstrap cross-validation by addressing its pessimistic bias. The pessimistic bias in the classic bootstrap method can be attributed to the fact that the bootstrap samples only contain approximately 63.2% of the unique samples from the original data set as bootstrap training sets and reserve 36.8% out-of-bag samples for testing in each iteration. To address the bias that is due to the sampling with replacement, the 0.632 bootstrap applies a weighted sum of the bootstrapped resubstitution error by 0.632 and the out-of-bag bootstrapped estimate of the prediction error by 0.368.
+|
+| **[A]** Internally-validated model performance on train set :
+|      **[A.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 74.58% Accuracy
+|      **[A.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 74.76% Accuracy (Best) 
+|      **[A.3]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 74.11% Accuracy
+|      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 73.46% Accuracy
+|      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 73.35% Accuracy
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.7, warning=FALSE, message=FALSE}
+################################################################################
+# Applying bootstrap 0.632 validation
+################################################################################
+set.seed(12345678)
+grid <- expand.grid(cp=c(0.001,0.005,0.010,0.015,0.020))
+
+rpartFit.Boot632 <- train(Class ~ .,
+                        data = MA_Train,
+                        method = "rpart",
+                        tuneGrid = grid,
+                        trControl = trainControl(method = "boot632",
+                                                 number = 500,
+                                                 classProbs = TRUE))
+
+rpartFit.Boot632$results
+
+################################################################################
+# Plotting the internal model validation performance
+# Applying bootstrap 0.632 validation
+################################################################################
+Boot632 <- rpartFit.Boot632$results$Accuracy
+Boot632.UCL <- rpartFit.Boot632$results$Accuracy+2*rpartFit.Boot632$results$AccuracySD
+Boot632.LCL <- rpartFit.Boot632$results$Accuracy-2*rpartFit.Boot632$results$AccuracySD
+Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
+
+Performance <- Boot632
+Validation <- c(rep("IV_B632V: Internal - Bootstrap 0.632",5))
+Boot632Performance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,Boot632.UCL,Boot632.LCL))
+Boot632Performance_Data$Performance <- as.numeric(as.character(Boot632Performance_Data$Performance))
+Boot632Performance_Data$Boot632.UCL <- as.numeric(as.character(Boot632Performance_Data$Boot632.UCL))
+Boot632Performance_Data$Boot632.LCL <- as.numeric(as.character(Boot632Performance_Data$Boot632.LCL))
+Boot632Performance_Data$Complexity_Parameter <- factor(Boot632Performance_Data$Complexity_Parameter,
+                                                       levels=c("0.001","0.005","0.010","0.015","0.020"))
+str(Boot632Performance_Data)
+Boot632Performance_Data
+(Boot632Performance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
+                                    data = Boot632Performance_Data,
+                                    ylab = "Estimated Accuracy",
+                                    xlab = "Complexity Parameter",
+                                    auto.key = list(adj = 1),
+                                    ylim = seq(0.60, 0.85, 0.05),
+                                    panel = function(x, y) {
+                                      panel.grid(h=4, v=4)
+                                      panel.xyplot(x,
+                                                   y,
+                                                   type=c("p","l"),
+                                                   pch=16,
+                                                   col.symbol="black",
+                                                   col.line="black",
+                                                   cex=2)
+                                      panel.arrows(x0 = as.numeric(x), 
+                                                   x1 = as.numeric(x), 
+                                                   y0 = Boot632Performance_Data$Boot632.LCL, 
+                                                   y1 = Boot632Performance_Data$Boot632.UCL, 
+                                                   length = 0.10, angle = 90, code = 3, lend = 2)
+                                      }))
+
+```
+
+</details>
+
+### 1.5.8 Internal Validation - Bootstrap Validation with Optimism Estimation (IV_BVOE)
+|
+| [Bootstrap Validation with Optimism Estimation](http://clinicalpredictionmodels.org/) is a further improvement of the original bootstrap process for calculating nearly unbiased and relatively stable estimates of optimism for a specific model performance metric. By subtracting the optimism from the performance metric, a corrected version can be obtained which better accounts for possible overfitting, which has been shown through numerous simulation studies as able to produce much more accurate estimates of true model performance than simply obtaining bootstrap estimates of performance metrics directly. The process involves training a model on a sample dataset, and recording the value of a performance metric of interest. Sufficiently many bootstrap samples are formed by drawing randomly with replacement from the original sample data set. New models are trained on each bootstrap sample, and each corresponding value of the performance metric for each bootstrap-sample-derived model is recorded. Each bootstrap-sample-derived model is applied to the original sample dataset, and the performance metric is measured. Optimism values are estimated by taking the mean of the differences between the the apparent performance of each bootstrap-sample-derived mode and each bootstrap-sample-derived model's performance when tested on the original sample. Rhe optimism-corrected value of the performance metric is then determined as the difference between the calculated naive values and the estimated optimism. 
+|
+| **[A]** Internally-validated model performance on train set :
+|      **[A.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 75.48% Accuracy (Best) 
+|      **[A.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 75.28% Accuracy
+|      **[A.3]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 73.07% Accuracy
+|      **[A.4]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 71.64% Accuracy
+|      **[A.5]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 72.14% Accuracy
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.8, warning=FALSE, message=FALSE}
+################################################################################
+# Applying bootstrap with optimism estimation validation
+################################################################################
+set.seed(12345678)
+grid <- expand.grid(cp=c(0.001,0.005,0.010,0.015,0.020))
+
+rpartFit.BootOptimism <- train(Class ~ .,
+                        data = MA_Train,
+                        method = "rpart",
+                        tuneGrid = grid,
+                        trControl = trainControl(method = "optimism_boot",
+                                                 number = 500,
+                                                 classProbs = TRUE))
+
+rpartFit.BootOptimism$results
+
+################################################################################
+# Plotting the internal model validation performance
+# Applying bootstrap with optimism estimation validation
+################################################################################
+BootOptimism <- rpartFit.BootOptimism$results$Accuracy
+BootOptimism.UCL <- rpartFit.BootOptimism$results$Accuracy+2*rpartFit.BootOptimism$results$AccuracySD
+BootOptimism.LCL <- rpartFit.BootOptimism$results$Accuracy-2*rpartFit.BootOptimism$results$AccuracySD
+Complexity_Parameter <- c("0.001","0.005","0.010","0.015","0.020")
+
+Performance <- BootOptimism
+Validation <- c(rep("IV_BVOE: Internal - Bootstrap Optimism",5))
+BootOptimismPerformance_Data <- as.data.frame(cbind(Validation,Complexity_Parameter,Performance,BootOptimism.UCL,BootOptimism.LCL))
+BootOptimismPerformance_Data$Performance <- as.numeric(as.character(BootOptimismPerformance_Data$Performance))
+BootOptimismPerformance_Data$BootOptimism.UCL <- as.numeric(as.character(BootOptimismPerformance_Data$BootOptimism.UCL))
+BootOptimismPerformance_Data$BootOptimism.LCL <- as.numeric(as.character(BootOptimismPerformance_Data$BootOptimism.LCL))
+BootOptimismPerformance_Data$Complexity_Parameter <- factor(BootOptimismPerformance_Data$Complexity_Parameter,
+                                                            levels=c("0.001","0.005","0.010","0.015","0.020"))
+str(BootOptimismPerformance_Data)
+BootOptimismPerformance_Data
+(BootOptimismPerformance_Plot <- xyplot(Performance ~ Complexity_Parameter | Validation,
+                                    data = BootOptimismPerformance_Data,
+                                    ylab = "Estimated Accuracy",
+                                    xlab = "Complexity Parameter",
+                                    auto.key = list(adj = 1),
+                                    ylim = seq(0.60, 0.85, 0.05),
+                                    panel = function(x, y) {
+                                      panel.grid(h=4, v=4)
+                                      panel.xyplot(x,
+                                                   y,
+                                                   type=c("p","l"),
+                                                   pch=16,
+                                                   col.symbol="black",
+                                                   col.line="black",
+                                                   cex=2)
+                                      panel.arrows(x0 = as.numeric(x), 
+                                                   x1 = as.numeric(x), 
+                                                   y0 = BootOptimismPerformance_Data$BootOptimism.LCL, 
+                                                   y1 = BootOptimismPerformance_Data$BootOptimism.UCL, 
+                                                   length = 0.10, angle = 90, code = 3, lend = 2)
+                                      }))
+
+```
+
+</details>
+
+## 1.6 Consolidated Findings
+|
+| **[A]** The best apparent model performance was noted for the most complex model (<span style="color: #FF0000">Complexity Parameter</span> = 0.001). However, this model might have too closely captured patterns of the train set, which may render it unable to generalize well to unseen data. Several internal validation procedures were implemented to estimate model performance on new data.
+|
+| **[B]** Various best-performing models were noted for the different internal validation procedures evaluated :
+|      **[B.1]** **K-Fold Cross Validation** using K=5
+|             **[B.1.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 70.50% Accuracy (Best) 
+|             **[B.1.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 70.38% Accuracy (Alternate)
+|      **[B.2]** **Repeated K-Fold Cross Validation** using K=5, Repeats=10
+|             **[B.2.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 72.01% Accuracy (Best) 
+|             **[B.2.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 71.54% Accuracy (Alternate)
+|      **[B.3]** **Leave-One-Out Cross Validation** using N=800
+|             **[B.3.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 67.38% Accuracy (Best) 
+|             **[B.3.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 66.00% Accuracy (Alternate)
+|      **[B.4]** **Leave-Group-Out Cross Validation** using Iterations=500
+|             **[B.4.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 71.21% Accuracy (Alternate) 
+|             **[B.4.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 71.23% Accuracy (Best)
+|      **[B.5]** **Bootstrap Validation** using Iterations=500
+|             **[B.5.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.015 : 71.11% Accuracy (Alternate) 
+|             **[B.5.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.020 : 71.24% Accuracy (Best)
+|      **[B.6]** **Bootstrap 0.632 Validation** using Iterations=500
+|             **[B.6.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 74.58% Accuracy (Alternate) 
+|             **[B.6.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 74.76% Accuracy (Best)
+|      **[B.7]** **Bootstrap with Optimism-Estimation Validation** using Iterations=500
+|             **[B.7.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.001 : 75.48% Accuracy (Best) 
+|             **[B.7.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 75.28% Accuracy (Alternate)
+|
+| **[C]** Taken together, the model with <span style="color: #FF0000">Complexity Parameter</span> = 0.010  was chosen as the final model. The best predictors identified from the model ranked based on variable importance are as follows :
+|      **[C.1]** <span style="color: #FF0000">CheckingAccountStatus.none</span> variable (factor)
+|      **[C.2]** <span style="color: #FF0000">Duration</span> variable (numeric)
+|      **[C.3]** <span style="color: #FF0000">Amount</span> variable (numeric)
+|      **[C.4]** <span style="color: #FF0000">SavingsAccountsBonds.lt.100</span> variable (factor)
+|      **[C.5]** <span style="color: #FF0000">CheckingAccountStatus.0.to.200</span> variable (factor)
+|      **[C.6]** <span style="color: #FF0000">SavingsAccountBonds.Unknown</span> variable (factor)
+|      **[C.7]** <span style="color: #FF0000">SavingsAccountBonds.100.to.500</span> variable (factor)
+|      **[C.8]** <span style="color: #FF0000">Age</span> variable (numeric)
+|      **[C.9]** <span style="color: #FF0000">OtherDebtorsGuarantors.Guarantor</span> variable (factor)
+|      **[C.10]** <span style="color: #FF0000">Purpose.NewCar</span> variable (factor)
+|      **[C.11]** <span style="color: #FF0000">Purpose.UsedCar</span> variable (factor)
+|      **[C.12]** <span style="color: #FF0000">OtherDebtorsGuarantors.None</span> variable (factor)
+|      **[C.13]** <span style="color: #FF0000">CheckingAccountStatus.gt.200</span> variable (factor)
+|      **[C.14]** <span style="color: #FF0000">CreditHistory.Critical</span> variable (factor)
+|      **[C.15]** <span style="color: #FF0000">SavingsAccountBonds.500.to.1000</span> variable (factor)
+|      **[C.16]** <span style="color: #FF0000">Job.SkilledEmployee</span> variable (factor)
+|      **[C.17]** <span style="color: #FF0000">InstallmentRatePercentage</span> variable (numeric)
+|      **[C.18]** <span style="color: #FF0000">EmploymentDuration.1.to.4</span> variable (factor)
+|      **[C.19]** <span style="color: #FF0000">EmploymentDuration.4.to.7</span> variable (factor)
+|      **[C.20]** <span style="color: #FF0000">Property.RealEstate</span> variable (factor)
+|      **[C.21]** <span style="color: #FF0000">Purpose.Business</span> variable (factor)
+|      **[C.22]** <span style="color: #FF0000">Purpose.Furniture.Equipment</span> variable (factor)
+|      **[C.23]** <span style="color: #FF0000">Job.UnskilledResident</span> variable (factor)
+|
+| **[D]** External validation of the final model (<span style="color: #FF0000">Complexity Parameter</span> = 0.010) on the test data resulted to a 74.00% accuracy. The difference between the apparent and test accuracies for the final model is 6.25% indicating a slight model overfit. It is not, however, the most optimal model, as the candidate model with <span style="color: #FF0000">Complexity Parameter</span> = 0.005 showed a higher externally-validated accuracy at 74.50%. This might indicate the slight difference in characteristics between the train and test sets.
+|      **[D.1]** <span style="color: #FF0000">Complexity Parameter</span> = 0.010 : 74.00% Accuracy (Final) 
+|      **[D.2]** <span style="color: #FF0000">Complexity Parameter</span> = 0.005 : 74.50% Accuracy (Optimal)
+|
+|
+
+<details><summary><mark style="background-color: #000000;color: #FFFFFF">**Code Chunk | Output**</mark></summary>
+
+```{r section_1.5.9, warning=FALSE, message=FALSE}
+################################################################################
+# Consolidating all model performance results
+################################################################################
+grid.arrange(ApparentPerformance_Plot, 
+             TestPerformance_Plot, 
+             CV.5Performance_Plot,
+             RCV.10Performance_Plot,
+             LOOCVPerformance_Plot,
+             LGOCVPerformance_Plot,
+             BootPerformance_Plot,
+             Boot632Performance_Plot,
+             BootOptimismPerformance_Plot,
+             ncol = 3)
+
+##################################
+# Plotting the final RPART model
+##################################
+fancyRpartPlot(rpartFit.Apparent.CP.010.Pruned, caption = NULL)
+
+##################################
+# Identifying the most predictive variables
+# for the final RPART model
+##################################
+rpartFit.Apparent.CP.010.Pruned.Summary$variable.importance
+
+```
+
+</details>
+|
+# **2. Summary** <a name="summary"></a>
+|
+| ![](D:/Github_Codes/ProjectPortfolio/Portfolio_Project_8/docs/Project8_Summary.png)
+|
+# **3. References**
+|
+| **[Book]** [Applied Predictive Modeling](http://appliedpredictivemodeling.com/) by Max Kuhn and Kjell Johnson
+| **[Book]** [An Introduction to Statistical Learning](https://www.statlearning.com/) by Gareth James, Daniela Witten, Trevor Hastie and Rob Tibshirani
+| **[Book]** [Classification and Regression Trees](https://www.taylorfrancis.com/books/mono/10.1201/9781315139470/classification-regression-trees-leo-breiman) by Leo Breiman
+| **[Book]** [Data Modeling Methods](https://bookdown.org/larget_jacob/data-modeling-methods/) by Jacob Larget
+| **[Book]** [Clinical Prediction Models](http://clinicalpredictionmodels.org/) by Ewout Steyerberg
+| **[R Package]** [caret](https://topepo.github.io/caret/index.html) by Max Kuhn
+| **[R Package]** [rpart](https://mran.microsoft.com/web/packages/rpart/rpart.pdf) by Terry Therneau and Beth Atkinson
+| **[R Package]** [lattice](https://cran.r-project.org/web/packages/lattice/lattice.pdf) by  Deepayan Sarkar
+| **[R Package]** [dplyr](https://cran.r-project.org/web/packages/dplyr/index.html/) by Hadley Wickham
+| **[R Package]** [moments](https://cran.r-project.org/web/packages/moments/index.html) by Lukasz Komsta and Frederick
+| **[R Package]** [skimr](https://cran.r-project.org/web/packages/skimr/skimr.pdf) by  Elin Waring
+| **[R Package]** [RANN](https://cran.r-project.org/web/packages/RANN/RANN.pdf) by  Sunil Arya, David Mount, Samuel Kemp and Gregory Jefferis
+| **[R Package]** [corrplot](https://cran.r-project.org/web/packages/corrplot/corrplot.pdf) by Taiyun Wei
+| **[R Package]** [tidyverse](https://cran.r-project.org/web/packages/tidyverse/tidyverse.pdf) by Hadley Wickham
+| **[R Package]** [lares](https://cran.rstudio.com/web/packages/lares/lares.pdf) by Bernardo Lares
+| **[R Package]** [DMwR](https://mran.microsoft.com/snapshot/2016-05-02/web/packages/DMwR/DMwR.pdf) by Luis Torgo
+| **[R Package]** [gridExtra](https://cran.r-project.org/web/packages/gridExtra/gridExtra.pdf) by Baptiste Auguie and Anton Antonov
+| **[R Package]** [rattle](https://cran.r-project.org/web/packages/rattle/rattle.pdf) by Graham Williams
+| **[R Package]** [rpart.plot](https://cran.r-project.org/web/packages/rpart.plot/rpart.plot.pdf) by Stephen Milborrow
+| **[R Package]** [RColorBrewer](https://cran.r-project.org/web//packages/RColorBrewer/RColorBrewer.pdf) by Erich Neuwirth
+| **[Article]** [Seven Types of Cross-validation](https://www.analyticssteps.com/blogs/7-types-cross-validation) by Soumyaa Rawat
+| **[Article]** [What Is Cross-Validation? Comparing Machine Learning Models](https://learn.g2.com/cross-validation) by Amal Joby
+| **[Article]** [Different Types of Cross-Validations in Machine Learning and Their Explanations](https://www.turing.com/kb/different-types-of-cross-validations-in-machine-learning-and-their-explanations) by Turing Team
+| **[Article]** [Cross-Validation: Evaluating Estimator Performance](https://scikit-learn.org/stable/modules/cross_validation.html) by Sci-Kit Learn Team
+| **[Article]** [A Gentle Introduction to K-Fold Cross-Validation](https://machinelearningmastery.com/k-fold-cross-validation/) by Jason Brownlee
+| **[Article]** [Repeated k-Fold Cross-Validation for Model Evaluation in Python](https://machinelearningmastery.com/repeated-k-fold-cross-validation-with-python/) by Jason Brownlee
+| **[Article]** [LOOCV for Evaluating Machine Learning Algorithms](https://machinelearningmastery.com/loocv-for-evaluating-machine-learning-algorithms/) by Jason Brownlee
+| **[Article]** [A Gentle Introduction to the Bootstrap Method](https://machinelearningmastery.com/a-gentle-introduction-to-the-bootstrap-method/) by Jason Brownlee
+| **[Article]** [LOOCV (Leave One Out Cross-Validation) in R Programming](https://www.geeksforgeeks.org/loocvleave-one-out-cross-validation-in-r-programming/) by Geeks for Geeks Team
+| **[Article]** [Simple and Efficient Bootstrap Validation of Predictive Models Using SAS/STAT® Software](https://www.sas.com/content/dam/SAS/support/en/sas-global-forum-proceedings/2020/4647-2020.pdf) by Isaiah Lankham and Matthew Slaughter
+| **[Article]** [Adjusting For Optimism/Overfitting in Measures of Predictive Ability Using Bootstrapping](https://thestatsgeek.com/2014/10/04/adjusting-for-optimismoverfitting-in-measures-of-predictive-ability-using-bootstrapping/) by Jonathan Bartlett
+| **[Article]** [Bootstrap_point632_score: The .632 and .632+ Boostrap for Classifier Evaluation](http://rasbt.github.io/mlxtend/user_guide/evaluate/bootstrap_point632_score/) by Sebastian Raschka
+| **[Article]** [Bootstrap and Cross-Validation for Evaluating Modelling Strategies](https://www.r-bloggers.com/2016/06/bootstrap-and-cross-validation-for-evaluating-modelling-strategies/) by Peter's Stats Stuff - R
+| **[Article]** [Comparison of Strategies for Validating Binary Logistic Regression Models](http://hbiostat.org/doc/simval.html) by Frank Harrel
+| **[Article]** [The caret Package](https://topepo.github.io/caret/index.html) by Max Kuhn
+| **[Article]** [A Short Introduction to the caret Package](https://cran.r-project.org/web/packages/caret/vignettes/caret.html) by Max Kuhn
+| **[Article]** [Caret Package – A Practical Guide to Machine Learning in R](https://www.machinelearningplus.com/machine-learning/caret-package/#:~:text=Caret%20is%20short%20for%20Classification%20And%20REgression%20Training.,track%20of%20which%20algorithm%20resides%20in%20which%20package.) by Selva Prabhakaran
+| **[Article]** [Tuning Machine Learning Models Using the Caret R Package](https://machinelearningmastery.com/tuning-machine-learning-models-using-the-caret-r-package/) by Jason Brownlee
+| **[Article]** [An Introduction to Recursive Partitioning Using the RPART Routines](https://cran.r-project.org/web/packages/rpart/vignettes/longintro.pdf) by Terry Therneau and Elizabeth Atkinson
+| **[Article]** [RPART Decision Trees in R](https://www.learnbymarketing.com/tutorials/rpart-decision-trees-in-r/) by Learn By Marketing Team
+| **[Article]** [Dot Plots with Lattice](https://www.uni-bamberg.de/fileadmin/uni/fakultaeten/split_lehrstuehle/englische_sprachwissenschaft/MaLT_appendix__Lukas_Soenning_/Dot_plots_with_lattice.html) by Lukas Soenning
+| **[Article]** [Lattice Graphs](http://www.sthda.com/english/wiki/lattice-graphs) by STHDA Team
+| **[Article]** [ID3, C4.5, CART and Pruning](https://bitmask93.github.io/ml-blog/ID3-C4-5-CART-and-Pruning/) by Jithin J
+| **[Article]** [Decision Tree Algorithm Examples In Data Mining](https://www.softwaretestinghelp.com/decision-tree-algorithm-examples-data-mining/) by Software Testing Help Team
+| **[Article]** [Decision Tree Algorithm Explained with Examples](https://www.mygreatlearning.com/blog/decision-tree-algorithm/) by Great Learning Team
+| **[Article]** [An Overview of Decision Tree Algorithm in Machine Learning](https://mldoodles.com/decision-tree-algorithm/) by ML Doodles Team
+| **[Article]** [Decision Tree Classification Algorithm](https://www.javatpoint.com/machine-learning-decision-tree-classification-algorithm) by JavaTPoint Team
+| **[Article]** [The Ultimate Guide to Decision Trees for Machine Learning](https://www.keboola.com/blog/decision-trees-machine-learning) by Keboola Team
+| **[Article]** [Hyperparameter Tuning for Machine Learning Explained](https://www.mygreatlearning.com/blog/hyperparameter-tuning-explained/) by Great Learning Team
+| **[Article]** [Hyperparameter Tuning](https://www.geeksforgeeks.org/hyperparameter-tuning/) by Tarandeep Singh
+| **[Article]** [Hyperparameter Optimization Techniques to Improve Your Machine Learning Model's Performance](https://www.freecodecamp.org/news/hyperparameter-optimization-techniques-machine-learning/) by Davis David
+| **[Article]** [What Is Hyperparameter Tuning?](https://aws.amazon.com/what-is/hyperparameter-tuning/) by AWS Team
+| **[Article]** [Hyperparameter Tuning in Python: a Complete Guide](https://neptune.ai/blog/hyperparameter-tuning-in-python-complete-guide#:~:text=Hyperparameter%20tuning%20%28or%20hyperparameter%20optimization%29%20is%20the%20process,running%20multiple%20trials%20in%20a%20single%20training%20process.) by Shahul ES and Aayush Bajaj
+| **[Publication]** [The Little Bootstrap and other Methods for Dimensionality Selection in Regression: X-Fixed Prediction Error](https://www.tandfonline.com/doi/abs/10.1080/01621459.1992.10475276) by Leo Breiman (Journal of the American Statistical Association )
+| **[Publication]** [A Leisurely Look at the Bootstrap, the Jackknife, and Cross-Validation](https://www.jstor.org/stable/2685844?origin=crossref) by Bradley Efron and Gail Gong (The American Statistician)
+| **[Publication]** [Bootstrap Methods for Standard Errors, Confidence Intervals, and Other Measures of Statistical Accuracy](https://projecteuclid.org/journals/statistical-science/volume-1/issue-1/Bootstrap-Methods-for-Standard-Errors-Confidence-Intervals-and-Other-Measures/10.1214/ss/1177013817.full) by Bradley Efron and Rob Tibshirani (Statistical Science)
+| **[Publication]** [Improvements on Cross-Validation: The .632+ Bootstrap Method](https://www.jstor.org/stable/2965703?origin=crossref) by Bradley Efron and Rob Tibshirani (Journal of the American Statistical Association)
+| **[Publication]** [Bootstrap Methods: Another Look at the Jackknife](https://link.springer.com/chapter/10.1007/978-1-4612-4380-9_41) by Bradley Efron (The Annals of Statistics)
+| **[Publication]** [Estimating the Error Rate of a Prediction Rule: Improvement on Cross-Validation](https://www.tandfonline.com/doi/abs/10.1080/01621459.1983.10477973) by Bradley Efron (Journal of the American Statistical Association)
+| **[Publication]** [How Biased is the Apparent Error Rate of a Prediction Rule?](https://www.tandfonline.com/doi/abs/10.1080/01621459.1986.10478291) by Bradley Efron (Journal of the American Statistical Association)
+| **[Publication]** [Prediction Error Estimation: A Comparison of Resampling Methods](https://academic.oup.com/bioinformatics/article/21/15/3301/195433) by Annette Molinaro, Richard Simon and Ruth Pfeiffer (Bioinformatics)
+|
+|
+|
+|
+|
