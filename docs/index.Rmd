@@ -886,7 +886,7 @@ PropTable_BarChart_1 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[2]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -900,7 +900,7 @@ PropTable_BarChart_2 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[3]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -914,7 +914,7 @@ PropTable_BarChart_3 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[4]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -928,7 +928,7 @@ PropTable_BarChart_4 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[5]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -942,7 +942,7 @@ PropTable_BarChart_5 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[6]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -956,7 +956,7 @@ PropTable_BarChart_6 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[7]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -970,7 +970,7 @@ PropTable_BarChart_7 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[8]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -984,7 +984,7 @@ PropTable_BarChart_8 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[9]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -998,7 +998,7 @@ PropTable_BarChart_9 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[10]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1012,7 +1012,7 @@ PropTable_BarChart_10 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[11]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1026,7 +1026,7 @@ PropTable_BarChart_11 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[12]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1040,7 +1040,7 @@ PropTable_BarChart_12 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[13]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1054,7 +1054,7 @@ PropTable_BarChart_13 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[14]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1068,7 +1068,7 @@ PropTable_BarChart_14 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[15]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1082,7 +1082,7 @@ PropTable_BarChart_15 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[16]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1096,7 +1096,7 @@ PropTable_BarChart_16 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[17]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1110,7 +1110,7 @@ PropTable_BarChart_17 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[18]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1124,7 +1124,7 @@ PropTable_BarChart_18 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[19]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1138,7 +1138,7 @@ PropTable_BarChart_19 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[20]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1152,7 +1152,7 @@ PropTable_BarChart_20 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[21]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1166,7 +1166,7 @@ PropTable_BarChart_21 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[22]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1180,7 +1180,7 @@ PropTable_BarChart_22 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[23]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1194,7 +1194,7 @@ PropTable_BarChart_23 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[24]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1208,7 +1208,7 @@ PropTable_BarChart_24 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[25]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1222,7 +1222,7 @@ PropTable_BarChart_25 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[26]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1236,7 +1236,7 @@ PropTable_BarChart_26 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 
 Prop_Label <- names(EDA.Predictors.Factor)[27]
@@ -1251,7 +1251,7 @@ PropTable_BarChart_27 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[28]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1265,7 +1265,7 @@ PropTable_BarChart_28 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[29]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1279,7 +1279,7 @@ PropTable_BarChart_29 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[30]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1293,7 +1293,7 @@ PropTable_BarChart_30 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[31]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1307,7 +1307,7 @@ PropTable_BarChart_31 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[32]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1321,7 +1321,7 @@ PropTable_BarChart_32 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[33]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1335,7 +1335,7 @@ PropTable_BarChart_33 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[34]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1349,7 +1349,7 @@ PropTable_BarChart_34 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[35]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1363,7 +1363,7 @@ PropTable_BarChart_35 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 Prop_Label <- names(EDA.Predictors.Factor)[36]
 PropTable_Label <- paste0(Prop_Label,"_PropTable")
@@ -1377,7 +1377,7 @@ PropTable_BarChart_36 <- barchart(Freq ~ Category | Variable,
          groups = Class,
          stack=TRUE,
          ylab = "Proportion",
-         auto.key = list(adj = 1))
+         auto.key = list(adj=1, space="top", columns=2))
 
 grid.arrange(PropTable_BarChart_1,
              PropTable_BarChart_2, 
@@ -1809,7 +1809,7 @@ ApparentPerformance_Data
                                     data = ApparentPerformance_Data,
                                     ylab = "Estimated Accuracy",
                                     xlab = "Complexity Parameter",
-                                    auto.key = list(adj = 1),
+                                    auto.key = list(adj=1),
                                     ylim = seq(0.60, 0.85, 0.05),
                                     panel = function(x, y) {
                                       panel.grid(h=4, v=4)
@@ -1835,7 +1835,7 @@ TestPerformance_Data
                                     data = TestPerformance_Data,
                                     ylab = "Estimated Accuracy",
                                     xlab = "Complexity Parameter",
-                                    auto.key = list(adj = 1),
+                                    auto.key = list(adj=1),
                                     ylim = seq(0.60, 0.85, 0.05),
                                     panel = function(x, y) {
                                       panel.grid(h=4, v=4)
@@ -1908,7 +1908,7 @@ CV.5Performance_Data
                                     data = CV.5Performance_Data,
                                     ylab = "Estimated Accuracy",
                                     xlab = "Complexity Parameter",
-                                    auto.key = list(adj = 1),
+                                    auto.key = list(adj=1),
                                     ylim = seq(0.60, 0.85, 0.05),
                                     panel = function(x, y) {
                                       panel.grid(h=4, v=4)
@@ -1986,7 +1986,7 @@ RCV.10Performance_Data
                                     data = RCV.10Performance_Data,
                                     ylab = "Estimated Accuracy",
                                     xlab = "Complexity Parameter",
-                                    auto.key = list(adj = 1),
+                                    auto.key = list(adj=1),
                                     ylim = seq(0.60, 0.85, 0.05),
                                     panel = function(x, y) {
                                       panel.grid(h=4, v=4)
@@ -2057,7 +2057,7 @@ LOOCVPerformance_Data
                                     data = LOOCVPerformance_Data,
                                     ylab = "Estimated Accuracy",
                                     xlab = "Complexity Parameter",
-                                    auto.key = list(adj = 1),
+                                    auto.key = list(adj=1),
                                     ylim = seq(0.60, 0.85, 0.05),
                                     panel = function(x, y) {
                                       panel.grid(h=4, v=4)
@@ -2129,7 +2129,7 @@ LGOCVPerformance_Data
                                     data = LGOCVPerformance_Data,
                                     ylab = "Estimated Accuracy",
                                     xlab = "Complexity Parameter",
-                                    auto.key = list(adj = 1),
+                                    auto.key = list(adj=1),
                                     ylim = seq(0.60, 0.85, 0.05),
                                     panel = function(x, y) {
                                       panel.grid(h=4, v=4)
@@ -2206,7 +2206,7 @@ BootPerformance_Data
                                     data = BootPerformance_Data,
                                     ylab = "Estimated Accuracy",
                                     xlab = "Complexity Parameter",
-                                    auto.key = list(adj = 1),
+                                    auto.key = list(adj=1),
                                     ylim = seq(0.60, 0.85, 0.05),
                                     panel = function(x, y) {
                                       panel.grid(h=4, v=4)
@@ -2283,7 +2283,7 @@ Boot632Performance_Data
                                     data = Boot632Performance_Data,
                                     ylab = "Estimated Accuracy",
                                     xlab = "Complexity Parameter",
-                                    auto.key = list(adj = 1),
+                                    auto.key = list(adj=1),
                                     ylim = seq(0.60, 0.85, 0.05),
                                     panel = function(x, y) {
                                       panel.grid(h=4, v=4)
@@ -2360,7 +2360,7 @@ BootOptimismPerformance_Data
                                     data = BootOptimismPerformance_Data,
                                     ylab = "Estimated Accuracy",
                                     xlab = "Complexity Parameter",
-                                    auto.key = list(adj = 1),
+                                    auto.key = list(adj=1),
                                     ylim = seq(0.60, 0.85, 0.05),
                                     panel = function(x, y) {
                                       panel.grid(h=4, v=4)
